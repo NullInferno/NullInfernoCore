@@ -8,6 +8,8 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <time.h>
+#include <float.h>
+#include <math.h>
 #endif
 
 #ifdef LINUX_SYSTEM
@@ -16,6 +18,10 @@
 #include <time.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <float.h>
+#include <math.h>
 #endif
 
 #ifdef WINDOWS_SYSTEM
@@ -124,10 +130,21 @@
 // Class forward declarations
 
 class TEnvironment;
+class TStopwatch;
 
 // Include other headers
 
 #include "TEnvironment.h"
+#include "TStopwatch.h"
+
+// Constatnts
+
+#define MAX_INT32 (INT32)2147483647
+#define MIN_INT32 (INT32)-2147483648
+#define MAX_UINT32 (UINT32)4294967295U
+#define MAX_INT64 (INT64)9223372036854775807LL
+#define MIN_INT64 (INT64)-9223372036854775808LL
+#define MAX_UINT64 (UINT64)18446744073709551615ULL
 
 // Macros
 
@@ -153,3 +170,25 @@ class TEnvironment;
 #define FNC_SPRINTF sprintf
 #define FNC_SNPRINTF snprintf
 #define FNC_VPRINTF vprintf
+#define FNC_STRCMP strcmp
+#define FNC_MEMCPY memcpy
+#define FNC_MEMSET memset
+#define FNC_SSCANF sscanf
+#define FNC_STRCPY strcpy
+
+// Miscellaneous functions
+
+DOUBLE RoundDOUBLE(DOUBLE iValue, INT32 iDecimalPlaces); // Round DOUBLE to specified decimal places
+BOOL IsEqualDOUBLES(DOUBLE iValue1, DOUBLE iValue2, DOUBLE iEpsilon = 1e-13); // Check if two DOUBLE values are equal 
+
+INT32 INT32ToStr(INT32 iValue, PCHAR oBuffer); // Convert INT32 to string
+INT32 UINT32ToStr(UINT32 iValue, PCHAR oBuffer); // Convert UINT32 to string
+INT32 INT64ToStr(INT64 iValue, PCHAR oBuffer); // Convert INT64 to string
+INT32 UINT64ToStr(UINT64 iValue, PCHAR oBuffer); // Convert UINT64 to string
+INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces = 6); // Convert DOUBLE to string
+
+INT32 StrToINT32(CONST_PCHAR iStr, INT32 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to INT32
+UINT32 StrToUINT32(CONST_PCHAR iStr, UINT32 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to UINT32
+INT64 StrToINT64(CONST_PCHAR iStr, INT64 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to INT64
+UINT64 StrToUINT64(CONST_PCHAR iStr, UINT64 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to UINT64
+DOUBLE StrToDOUBLE(CONST_PCHAR iStr, DOUBLE iDefaultValue = 0.0, CHAR iDecimalPointChar = '.', CHAR iTerminatingChar = ' '); // Convert string to DOUBLE

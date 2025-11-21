@@ -21,9 +21,18 @@
     <ClInclude Include="TEnvironment.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TStopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TEnvironment.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TStopwatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -18,5 +18,11 @@
     <ClCompile Include="tester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="validity_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="performance_tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,5 +1,8 @@
 #include "NullInfernoCore.h"
 
+BOOL RunAllValidityTests(void);
+void RunAllPerformanceTests(void);
+
 //	................................................................................................
 //  Main function of the tester application
 //	Input:
@@ -20,6 +23,20 @@ INT32 main(INT32 iArgc, PCHAR* iArgs) {
 		printf("\n\n");
 		return -1;
 	}
+
+	printf("\nRunning validity tests...");
+	if (!RunAllValidityTests()) {
+		TEnvironment::CloseEnvironment();
+		printf("\n............................................................................................................");
+		printf("\n\n");
+		return -1;
+	}
+	printf("\nValidity tests completed successfully.");
+	printf("\n............................................................................................................");
+
+	printf("\nRunning performance tests...");
+	RunAllPerformanceTests();
+	printf("\nPerformance tests completed.");
 
 	//for (INT32 i = 0; i < 32; i++) {
 	//	printf("\n[%08X]", TEnvironment::GenerateRandomUINT32());

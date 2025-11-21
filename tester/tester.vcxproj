@@ -149,7 +149,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="performance_tests.cpp" />
     <ClCompile Include="tester.cpp" />
+    <ClCompile Include="validity_tests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
