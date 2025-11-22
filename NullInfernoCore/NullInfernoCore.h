@@ -10,6 +10,8 @@
 #include <time.h>
 #include <float.h>
 #include <math.h>
+#include <locale.h>
+#include <emmintrin.h>
 #endif
 
 #ifdef LINUX_SYSTEM
@@ -22,6 +24,9 @@
 #include <unistd.h>
 #include <float.h>
 #include <math.h>
+#include <ctype.h>
+#include <locale.h>
+#include <emmintrin.h>
 #endif
 
 #ifdef WINDOWS_SYSTEM
@@ -131,11 +136,13 @@
 
 class TEnvironment;
 class TStopwatch;
+class TString;
 
 // Include other headers
 
 #include "TEnvironment.h"
 #include "TStopwatch.h"
+#include "TString.h"
 
 // Constatnts
 
@@ -150,13 +157,21 @@ class TStopwatch;
 
 #define EXCHANGE_DOUBLE(_v1, _v2) { DOUBLE iTemp = _v1; _v1 = _v2; _v2 = iTemp; }
 #define ALIGN16(_Val) (((_Val) & ~15) + 16)
+#define IS_INDEX_IN(_Index, _Start, _End) (((_Index) >= (_Start)) && ((_Index) < (_End)))
+#define IS_INDEX_OUT(_Index, _Start, _End) (((_Index) < (_Start)) || ((_Index) >= (_End)))
+#define MIN(_V1, _V2) (((_V1) < (_V2)) ? (_V1) : (_V2))
 
 #ifdef WINDOWS_SYSTEM
 #define MEMORY_ALLOC(_size) _aligned_malloc(ALIGN16(_size), 16)
 #define MEMORY_FREE(_ptr) _aligned_free(_ptr)
+
+#define FNC_STRCASECMP _stricmp
+
 #else
 #define MEMORY_ALLOC(_size) malloc(ALIGN16(_size))
 #define MEMORY_FREE(_ptr) free(_ptr)
+
+#define FNC_STRCASECMP strcasecmp
 #endif
 
 #define IS_PCHAR_EMPTY(_p) (((_p) == NULL) || (*(_p) == 0 ))
@@ -175,6 +190,10 @@ class TStopwatch;
 #define FNC_MEMSET memset
 #define FNC_SSCANF sscanf
 #define FNC_STRCPY strcpy
+#define FNC_MEMCPY memcpy
+#define FNC_MEMMOVE memmove
+#define FNC_STRCHR strchr
+#define FNC_STRRCHR strrchr
 
 // Miscellaneous functions
 
@@ -192,3 +211,5 @@ UINT32 StrToUINT32(CONST_PCHAR iStr, UINT32 iDefaultValue = 0, CHAR iTerminating
 INT64 StrToINT64(CONST_PCHAR iStr, INT64 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to INT64
 UINT64 StrToUINT64(CONST_PCHAR iStr, UINT64 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to UINT64
 DOUBLE StrToDOUBLE(CONST_PCHAR iStr, DOUBLE iDefaultValue = 0.0, CHAR iDecimalPointChar = '.', CHAR iTerminatingChar = ' '); // Convert string to DOUBLE
+
+INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCHAR oDstStr, INT32 iDstCodepage); // Convert string between codepages

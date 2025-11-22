@@ -149,11 +149,13 @@
     <ClInclude Include="NullInfernoCore.h" />
     <ClInclude Include="TEnvironment.h" />
     <ClInclude Include="TStopwatch.h" />
+    <ClInclude Include="TString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonFunctions.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
     <ClCompile Include="TStopwatch.cpp" />
+    <ClCompile Include="TString.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

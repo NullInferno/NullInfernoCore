@@ -361,6 +361,217 @@ void RunPerformanceTests_Environment(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - TString
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TString(void) {
+	INT64 Iters;
+	INT64 MaxIters;
+
+	TStopwatch SW;
+
+	CHAR* volatile P1 = PCHAR_ALLOC(10240);
+	if (P1 == NULL) return;
+	CHAR* volatile P2 = PCHAR_ALLOC(10240);
+	if (P2 == NULL) return;
+
+	TString S1;
+
+	// TString::Compare
+#if 0
+	MaxIters = 1000000;
+	SW.Start();
+
+	TString::GenerateRandomBASE64String(P1, 1024);
+	S1.SetValue(P1);
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		//TString::GenerateRandomBASE64String(P1, Iters % 1025);
+		//S1.SetValue(P1, Iters % 1025);
+		if (S1.Compare(P1, 0, -1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::Compare", Iters);
+#endif
+	// TString::CaseCompare
+#if 0
+	MaxIters = 1000000;
+	SW.Start();
+
+	TString::GenerateRandomBASE64String(P1, 1024);
+	S1.SetValue(P1); S1.ToLowercase();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		//TString::GenerateRandomBASE64String(P1, Iters % 1025);
+		//S1.SetValue(P1, Iters % 1025);
+		if (S1.CaseCompare(P1, 0, -1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::CaseCompare", Iters);
+#endif
+	// strchr
+#if 0
+	MaxIters = 10000000;
+	memset(P1, 'a', 1024); P1[1024] = 0;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (FNC_STRCHR(P1, 'b') != NULL) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("strchr", Iters);
+#endif
+	// strchr 15 chars
+#if 0
+	MaxIters = 100000000;
+	memset(P1, 'a', 15); P1[16] = 0;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (FNC_STRCHR(P1, 'b') != NULL) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("strchr  (15 chars)", Iters);
+#endif
+	// TString::FindChar
+#if 0
+	MaxIters = 10000000;
+
+	memset(P1, 'a', 1024); P1[1023] = 'b'; P1[1024] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.FindChar('b', 0, 1024, 1) != 1023) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::FindChar", Iters);
+#endif
+	// TString::FindChar 15 chars
+#if 0
+	MaxIters = 100000000;
+
+	memset(P1, 'a', 15); P1[16] = 0; P1[14] = 'b';
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.FindChar('b', 0, 100, 1) != 14) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::FindChar (15 chars)", Iters);
+#endif
+	// TString::CaseFindChar
+#if 0
+	MaxIters = 10000000;
+
+	memset(P1, 'A', 1024); P1[1023] = 'B'; P1[1024] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.CaseFindChar('b', 0, -1, 1) != 1023) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::CaseFindChar", Iters);
+#endif
+	// strrchr
+#if 1
+	MaxIters = 10000000;
+	memset(P1, 'a', 1024); P1[1024] = 0; P1[0] = 'b';
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (FNC_STRRCHR(P1, 'b') != P1) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("strrchr", Iters);
+#endif
+	// strchr (15 chars)
+#if 1
+	MaxIters = 100000000;
+	memset(P1, 'a', 15); P1[16] = 0; P1[0] = 'b';
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (FNC_STRRCHR(P1, 'b') != P1) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("strrchr  (15 chars)", Iters);
+#endif
+	// TString::ReverseFindChar
+#if 1
+	MaxIters = 10000000;
+	memset(P1, 'a', 1024); P1[0] = 'b'; P1[1024] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.ReverseFindChar('b', -1, -1, 1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::ReverseFindChar", Iters);
+#endif
+	// TString::ReverseFindChar (15 chars)
+#if 1
+	MaxIters = 10000000;
+	memset(P1, 'a', 1024); P1[0] = 'b'; P1[16] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.ReverseFindChar('b', -1, -1, 1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::ReverseFindChar (15 chars)", Iters);
+#endif
+	// TString::ReverseCaseFindChar
+#if 1
+	MaxIters = 10000000;
+	memset(P1, 'A', 1024); P1[0] = 'B'; P1[1024] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.ReverseCaseFindChar('b', -1, -1, 1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::ReverseCaseFindChar", Iters);
+#endif
+	// TString::ReverseFindChar (15 chars)
+#if 1
+	MaxIters = 10000000;
+	memset(P1, 'A', 1024); P1[0] = 'B'; P1[16] = 0;
+	S1.SetValue(P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.ReverseCaseFindChar('b', -1, -1, 1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString::ReverseCaseFindChar (15 chars)", Iters);
+#endif
+
+	PCHAR_FREE(P1);
+	PCHAR_FREE(P2);
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -369,5 +580,6 @@ void RunPerformanceTests_Environment(void) {
 //	................................................................................................
 void RunAllPerformanceTests(void) {
 	RunPerformanceTests_Environment();
+	RunPerformanceTests_TString();
 }
 //	................................................................................................

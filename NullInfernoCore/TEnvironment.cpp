@@ -85,7 +85,7 @@ DOUBLE TEnvironment::GenerateRandomDOUBLE(DOUBLE iMin, DOUBLE iMax) {
 // 	Output:
 // 			false
 //	................................................................................................
-BOOL TEnvironment::ShowTestErrorMessages(INT32 iErrorCode, CONST_PCHAR iErrorMessage, ...) {
+BOOL TEnvironment::ShowTestErrorMessage(INT32 iErrorCode, CONST_PCHAR iErrorMessage, ...) {
 	if (IS_PCHAR_EMPTY(iErrorMessage)) { // No message?
 		FNC_PRINTF("Error with code: %d!", iErrorCode); // Show error code only
 		return false;

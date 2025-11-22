@@ -14,6 +14,7 @@ TARGET_LIB = /home/nullinferno/projects/NullInfernoCore/libNullInfernoCore.a
 SRCS_LIB = TEnvironment.cpp \
 			TStopwatch.cpp \
 			CommonFunctions.cpp \
+			TString.cpp \
 
 OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
 OBJS_LIB = $(SRCS_LIB:%.cpp=$(OBJDIR)/%.o)
