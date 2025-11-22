@@ -504,6 +504,81 @@ BOOL RunValidityTests_TString(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TList
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TList(void) {
+
+	TList L1(1), L2(1);
+	INT64 R;
+
+	R = L1.Add((UINT64)1); if ((R != 0) || (L1.Count() != 1) || (L1.ItemAsUINT64(0) != 1)) return TEnvironment::ShowTestErrorMessage(-1201, "TList::Add");
+	R = L1.Add((UINT64)2); if ((R != 1) || (L1.Count() != 2) || (L1.ItemAsUINT64(0) != 1) || (L1.ItemAsUINT64(1) != 2)) return TEnvironment::ShowTestErrorMessage(-1202, "TList::Add");
+	R = L1.Add((UINT64)3); if ((R != 2) || (L1.Count() != 3) || (L1.ItemAsUINT64(0) != 1) || (L1.ItemAsUINT64(1) != 2) || (L1.ItemAsUINT64(2) != 3)) return TEnvironment::ShowTestErrorMessage(-1203, "TList::Add");
+	R = L1.Insert(0, (UINT64)4); if ((R != 0) || (L1.Count() != 4) || (L1.ItemAsUINT64(0) != 4) || (L1.ItemAsUINT64(1) != 1) || (L1.ItemAsUINT64(2) != 2) || (L1.ItemAsUINT64(3) != 3)) return TEnvironment::ShowTestErrorMessage(-1204, "TList::Add");
+	R = L1.Insert(1, (UINT64)5); if ((R != 1) || (L1.Count() != 5) || (L1.ItemAsUINT64(0) != 4) || (L1.ItemAsUINT64(1) != 5) || (L1.ItemAsUINT64(2) != 1) || (L1.ItemAsUINT64(3) != 2) || (L1.ItemAsUINT64(4) != 3)) return TEnvironment::ShowTestErrorMessage(-1205, "TList::Add");
+	L1.SetCount(4); if ((L1.Count() != 4) || (L1.ItemAsUINT64(0) != 4) || (L1.ItemAsUINT64(1) != 5) || (L1.ItemAsUINT64(2) != 1) || (L1.ItemAsUINT64(3) != 2)) return TEnvironment::ShowTestErrorMessage(-1206, "TList::SetCount");
+	L1.Delete(3); if ((L1.Count() != 3) || (L1.ItemAsUINT64(0) != 4) || (L1.ItemAsUINT64(1) != 5) || (L1.ItemAsUINT64(2) != 1)) return TEnvironment::ShowTestErrorMessage(-1207, "TList::Delete");
+	L1.Delete(0); if ((L1.Count() != 2) || (L1.ItemAsUINT64(0) != 5) || (L1.ItemAsUINT64(1) != 1)) return TEnvironment::ShowTestErrorMessage(-1208, "TList::Delete");
+	L1.Delete(0); if ((L1.Count() != 1) || (L1.ItemAsUINT64(0) != 1)) return TEnvironment::ShowTestErrorMessage(-1209, "TList::Delete");
+	L1.Delete(0); if (L1.Count() != 0) return TEnvironment::ShowTestErrorMessage(-1210, "TList::Delete");
+
+	L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)6);
+	L1.DeleteRange(0, 2); if ((L1.Count() != 4) || (L1.ItemAsUINT64(0) != 3) || (L1.ItemAsUINT64(1) != 4) || (L1.ItemAsUINT64(2) != 5) || (L1.ItemAsUINT64(3) != 6)) return TEnvironment::ShowTestErrorMessage(-1211, "TList::DeleteRange");
+	L1.DeleteRange(1, 2); if ((L1.Count() != 2) || (L1.ItemAsUINT64(0) != 3) || (L1.ItemAsUINT64(1) != 6)) return TEnvironment::ShowTestErrorMessage(-1212, "TList::DeleteRange");
+	L1.DeleteRange(0, 2); if (L1.Count() != 0) return TEnvironment::ShowTestErrorMessage(-1213, "TList::DeleteRange");
+
+	L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)6);
+	L2.Add((UINT64)11); L2.Add((UINT64)12);
+	R = L1.AddList(&L2); if ((R != 6) || (L1.Count() != 8) || (L1.ItemAsUINT64(0) != 1) || (L1.ItemAsUINT64(1) != 2) || (L1.ItemAsUINT64(2) != 3) || (L1.ItemAsUINT64(3) != 4) || (L1.ItemAsUINT64(4) != 5) || (L1.ItemAsUINT64(5) != 6) || (L1.ItemAsUINT64(6) != 11) || (L1.ItemAsUINT64(7) != 12)) return TEnvironment::ShowTestErrorMessage(-1214, "TList::AddList");
+
+	L1.Clear(); L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)6);
+	R = L1.InsertList(1, &L2); if ((R != 1) || (L1.Count() != 8) || (L1.ItemAsUINT64(0) != 1) || (L1.ItemAsUINT64(1) != 11) || (L1.ItemAsUINT64(2) != 12) || (L1.ItemAsUINT64(3) != 2) || (L1.ItemAsUINT64(4) != 3) || (L1.ItemAsUINT64(5) != 4) || (L1.ItemAsUINT64(6) != 5) || (L1.ItemAsUINT64(7) != 6)) return TEnvironment::ShowTestErrorMessage(-1215, "TList::InsertList");
+
+	L1.Clear(); L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)6);
+
+	L1.DeleteValue((PVOID)6, 1); if ((L1.Count() != 5) || (L1.ItemAsUINT64(0) != 1) || (L1.ItemAsUINT64(1) != 2) || (L1.ItemAsUINT64(2) != 3) || (L1.ItemAsUINT64(3) != 4) || (L1.ItemAsUINT64(4) != 5)) return TEnvironment::ShowTestErrorMessage(-1216, "TList::DeleteValue");
+	L1.DeleteValue((PVOID)1, 1); if ((L1.Count() != 4) || (L1.ItemAsUINT64(0) != 2) || (L1.ItemAsUINT64(1) != 3) || (L1.ItemAsUINT64(2) != 4) || (L1.ItemAsUINT64(3) != 5)) return TEnvironment::ShowTestErrorMessage(-1217, "TList::DeleteValue");
+	L1.DeleteValue((PVOID)10, 1); if ((L1.Count() != 4) || (L1.ItemAsUINT64(0) != 2) || (L1.ItemAsUINT64(1) != 3) || (L1.ItemAsUINT64(2) != 4) || (L1.ItemAsUINT64(3) != 5)) return TEnvironment::ShowTestErrorMessage(-1218, "TList::DeleteValue");
+
+	L1.Clear();
+	L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)1); L1.Add((UINT64)5); L1.Add((UINT64)1);
+	L1.DeleteValue((PVOID)1, 0); if ((L1.Count() != 3) || (L1.ItemAsUINT64(0) != 2) || (L1.ItemAsUINT64(1) != 3) || (L1.ItemAsUINT64(2) != 5)) return TEnvironment::ShowTestErrorMessage(-1219, "TList::DeleteValue (all)");
+
+	L1.Clear();
+	L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)1); L1.Add((UINT64)5); L1.Add((UINT64)1);
+	L1.DeleteValue((PVOID)1, 2); if ((L1.Count() != 4) || (L1.ItemAsUINT64(0) != 2) || (L1.ItemAsUINT64(1) != 3) || (L1.ItemAsUINT64(2) != 5) || (L1.ItemAsUINT64(3) != 1)) return TEnvironment::ShowTestErrorMessage(-1220, "TList::DeleteValue (all)");
+
+	L1.Clear(); L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)1);
+	if (L1.Find((UINT64)1, 0, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-1221, "TList::Find");
+	if (L1.Find((UINT64)1, 0, -1, 2) != 5) return TEnvironment::ShowTestErrorMessage(-1222, "TList::Find");
+	if (L1.Find((UINT64)1, 0, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-1223, "TList::Find");
+	if (L1.Find((UINT64)1, 1, -1, 1) != 5) return TEnvironment::ShowTestErrorMessage(-1224, "TList::Find");
+	if (L1.Find((UINT64)1, 1, -1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-1225, "TList::Find");
+	if (L1.Find((UINT64)6, 0, -1, -1) != -1) return TEnvironment::ShowTestErrorMessage(-1226, "TList::Find");
+	if (L1.Find((UINT64)1, 0, 2, 2) != -1) return TEnvironment::ShowTestErrorMessage(-1227, "TList::Find");
+
+	L1.Clear(); L1.Add((UINT64)1); L1.Add((UINT64)2); L1.Add((UINT64)3); L1.Add((UINT64)4); L1.Add((UINT64)5); L1.Add((UINT64)1);
+	if (L1.ReverseFind((UINT64)1, -1, -1, 1) != 5) return TEnvironment::ShowTestErrorMessage(-1228, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)1, -1, -1, 2) != 0) return TEnvironment::ShowTestErrorMessage(-1229, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)1, -1, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-1230, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)1, 4, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-1231, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)1, 4, -1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-1232, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)6, -1, -1, 1) != -1) return TEnvironment::ShowTestErrorMessage(-1233, "TList::ReverseFind");
+	if (L1.ReverseFind((UINT64)1, -1, 2, 2) != -1) return TEnvironment::ShowTestErrorMessage(-1234, "TList::ReverseFind");
+
+	L1.Clear(); L1.Add((UINT64)1); L1.Add((UINT64)2);
+	L1.SetItem(0, (UINT64)3); if (L1.ItemAsUINT64(0) != 3) return TEnvironment::ShowTestErrorMessage(-1235, "TList::SetItem");
+	L1.SetItem(0, (UINT64)4); if (L1.ItemAsUINT64(0) != 4) return TEnvironment::ShowTestErrorMessage(-1236, "TList::SetItem");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all validity tests
 //	Input:
 //			none
@@ -518,6 +593,10 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TString... ");
 	if (!RunValidityTests_TString()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TList... ");
+	if (!RunValidityTests_TList()) return false;
 	printf("OK.");
 
 	return true; // all tests passed

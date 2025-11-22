@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <locale.h>
 #include <emmintrin.h>
+#include <stdint.h>
 #endif
 
 #ifdef WINDOWS_SYSTEM
@@ -137,14 +138,16 @@
 class TEnvironment;
 class TStopwatch;
 class TString;
+class TList;
 
 // Include other headers
 
 #include "TEnvironment.h"
 #include "TStopwatch.h"
 #include "TString.h"
+#include "TList.h"
 
-// Constatnts
+// Constants
 
 #define MAX_INT32 (INT32)2147483647
 #define MIN_INT32 (INT32)-2147483648

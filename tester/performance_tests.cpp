@@ -8,8 +8,8 @@
 //			none
 //	................................................................................................
 void RunPerformanceTests_Environment(void) {
-	INT64 Iters;
-	INT64 MaxIters;
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
 
 	TStopwatch SW;
 
@@ -368,8 +368,8 @@ void RunPerformanceTests_Environment(void) {
 //			none
 //	................................................................................................
 void RunPerformanceTests_TString(void) {
-	INT64 Iters;
-	INT64 MaxIters;
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
 
 	TStopwatch SW;
 
@@ -484,7 +484,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("TString::CaseFindChar", Iters);
 #endif
 	// strrchr
-#if 1
+#if 0
 	MaxIters = 10000000;
 	memset(P1, 'a', 1024); P1[1024] = 0; P1[0] = 'b';
 
@@ -497,7 +497,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("strrchr", Iters);
 #endif
 	// strchr (15 chars)
-#if 1
+#if 0
 	MaxIters = 100000000;
 	memset(P1, 'a', 15); P1[16] = 0; P1[0] = 'b';
 
@@ -510,7 +510,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("strrchr  (15 chars)", Iters);
 #endif
 	// TString::ReverseFindChar
-#if 1
+#if 0
 	MaxIters = 10000000;
 	memset(P1, 'a', 1024); P1[0] = 'b'; P1[1024] = 0;
 	S1.SetValue(P1);
@@ -524,7 +524,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("TString::ReverseFindChar", Iters);
 #endif
 	// TString::ReverseFindChar (15 chars)
-#if 1
+#if 0
 	MaxIters = 10000000;
 	memset(P1, 'a', 1024); P1[0] = 'b'; P1[16] = 0;
 	S1.SetValue(P1);
@@ -538,7 +538,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("TString::ReverseFindChar (15 chars)", Iters);
 #endif
 	// TString::ReverseCaseFindChar
-#if 1
+#if 0
 	MaxIters = 10000000;
 	memset(P1, 'A', 1024); P1[0] = 'B'; P1[1024] = 0;
 	S1.SetValue(P1);
@@ -552,7 +552,7 @@ void RunPerformanceTests_TString(void) {
 	SW.PrintPerforanceResult("TString::ReverseCaseFindChar", Iters);
 #endif
 	// TString::ReverseFindChar (15 chars)
-#if 1
+#if 0
 	MaxIters = 10000000;
 	memset(P1, 'A', 1024); P1[0] = 'B'; P1[16] = 0;
 	S1.SetValue(P1);
@@ -572,6 +572,74 @@ void RunPerformanceTests_TString(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - TList
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TList(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TList L1, L2;
+
+	// TList::DeleteValue
+#if 1
+	MaxIters = 500000;
+
+	for (INT64 i = 0; i < 1024; i++) L1.Add(i & 3);
+	L2.CreateCopy(&L1); L1.SetCount(0);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		L1.CreateCopy(&L2);
+		L1.DeleteValue((PVOID)1, -1, NULL);
+		if (L1.Count() != 1024-256) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::DeleteValue + TList::CreateCopy", Iters);
+#endif
+	// TList::Find
+#if 1
+	MaxIters = 500000;
+
+	L1.SetCount(0);
+	for (INT64 i = 0; i < 1024; i++) L1.Add((UINT64)1);
+	L1.Add((UINT64)2);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.Find((UINT64)2, 0, -1, 1) != 1024) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::Find", Iters);
+#endif
+	// TList::ReverseFind
+#if 1
+	MaxIters = 500000;
+
+	L1.SetCount(0);
+	L1.Add((UINT64)2);
+	for (INT64 i = 0; i < 1024; i++) L1.Add((UINT64)1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.ReverseFind((UINT64)2, -1, -1, 1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::ReverseFind", Iters);
+#endif
+
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -581,5 +649,6 @@ void RunPerformanceTests_TString(void) {
 void RunAllPerformanceTests(void) {
 	RunPerformanceTests_Environment();
 	RunPerformanceTests_TString();
+	RunPerformanceTests_TList();
 }
 //	................................................................................................
