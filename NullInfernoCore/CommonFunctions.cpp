@@ -491,3 +491,104 @@ INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCH
 #endif
 }
 //	................................................................................................
+
+//	................................................................................................
+//  Internal quicksort implementation
+//	Input:
+//			iData - data to sort
+// 			iLeft - left index
+// 			iRight - right index
+// 			iItemSize - size of each item
+// 			iCompareFunction - comparison function
+// 			iUserData - user data passed to comparison function
+//	Output:
+//			none
+//	................................................................................................
+void _quicksort_impl(CONST_PVOID iData, INT64 iLeft, INT64 iRight, INT64 iItemSize, TCompareItemsFunction iCompareFunction, CONST_PVOID iUserData) {
+	if (iLeft >= iRight) return; // Base case
+
+	INT64 i = iLeft; // 
+	INT64 j = iRight; //  
+	INT64 pivotIndex = iLeft + (iRight - iLeft) / 2; // Pivot index
+
+	while (i <= j) { // Partitioning
+		while (iCompareFunction(iData, i, pivotIndex, iUserData) < 0) i++; // Move i to the right
+		while (iCompareFunction(iData, j, pivotIndex, iUserData) > 0) j--; // Move j to the left
+
+		if (i <= j) {
+			if (i != j) { // Swap items at i and j
+				PBYTE P1 = (PBYTE)iData + i * iItemSize;
+				PBYTE P2 = (PBYTE)iData + j * iItemSize;
+				for (INT64 k = 0; k < iItemSize; k++) {
+					BYTE T = P1[k]; P1[k] = P2[k]; P2[k] = T;
+				}
+			}
+			i++; // Move i to the right
+			j--; // Move j to the left
+		}
+	}
+
+	if (iLeft < j) _quicksort_impl(iData, iLeft, j, iItemSize, iCompareFunction, iUserData); // Recursively sort left part
+	if (i < iRight) _quicksort_impl(iData, i, iRight, iItemSize, iCompareFunction, iUserData); // Recursively sort right part
+}
+//	................................................................................................
+//	................................................................................................
+//  Quick sort algorithm
+//	Input:
+//			iData - data to sort
+// 			iItemsCount - number of items
+// 			iItemSize - size of each item
+// 			iCompareFunction - comparison function
+//			iUserData - user data passed to comparison function
+//	Output:
+//			none
+//	................................................................................................
+void QuickSort(CONST_PVOID iData, INT64 iItemsCount, INT64 iItemSize, TCompareItemsFunction iCompareFunction, CONST_PVOID iUserData) {
+	if ((iData == NULL) || (iItemsCount <= 1) || (iItemSize < 1) || (iCompareFunction == NULL)) return; // Invalid parameters?
+	_quicksort_impl(iData, 0, iItemsCount - 1, iItemSize, iCompareFunction, iUserData); // Call internal quicksort implementation
+}
+//	................................................................................................
+//	................................................................................................
+//  Find item in sorted data using binary search
+//	Input:
+//			iData - data to sort
+// 			iItemsCount - number of items
+// 			iItemSize - size of each item
+// 			iCompareFunction - comparison function
+//			iUserData - user data passed to comparison function
+// 			iSearchMode - search mode 
+//	Output:
+//			none
+//	................................................................................................
+INT64 BinarySearch(CONST_PVOID iData, INT64 iItemsCount, INT64 iItemSize, TBinarySearchCompareFunction iCompareFunction, CONST_PVOID iUserData, INT32 iSearchMode) {
+	if ((iData == NULL) || (iItemsCount <= 0) || (iItemSize < 1) || (iCompareFunction == NULL)) return -1; // Invalid parameters?
+
+	CONST_PBYTE Base = (CONST_PBYTE)iData; // Base pointer
+	INT64 Left = 0; // Left index
+	INT64 Right = iItemsCount - 1; // Right index
+	INT64 Result = -1;
+
+	while (Left <= Right) { // While search range is valid
+		INT64 Mid = Left + (Right - Left) / 2; // Middle index
+		CONST_PVOID Element = Base + Mid * iItemSize; // Pointer to middle element
+
+		INT32 R = iCompareFunction(Element, iUserData); // Compare middle element with target
+
+		if (R == 0) {
+			if (iSearchMode == BINARY_SEARCH_FIRST_OCCURRENCE) { // Mode search first occurrence?
+				Result = Mid;
+				Right = Mid - 1;
+			}
+			else if (iSearchMode == BINARY_SEARCH_LAST_OCCURRENCE) { // Mode search last occurrence?
+				Result = Mid;
+				Left = Mid + 1;
+			}
+			else return Mid;
+		}
+		else if (R < 0) Left = Mid + 1; // Search in the right half
+		else Right = Mid - 1; // Search in the left half
+	}
+
+	return Result; // Not found
+}
+//	................................................................................................

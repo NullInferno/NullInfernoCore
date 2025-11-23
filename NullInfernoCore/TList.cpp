@@ -111,6 +111,21 @@ void TList::CreateCopy(TList* iSourceList) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Sort the list using the specified comparison function
+//	Input:
+// 			iCompareFunction - comparison function
+//	Output:
+//			none
+//	...............................................................................................
+void TList::Sort(TListCompareItemsFunction iCompareFunction) {
+	QuickSort(FValues, FCount, sizeof(PVOID), 
+		[](CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData)->INT32 {
+			TListCompareItemsFunction CompF = (TListCompareItemsFunction)iUserData;
+			return CompF( ((PVOID*)iData)[iIndex1], ((PVOID*)iData)[iIndex2]);
+		}, (CONST_PVOID)iCompareFunction); // Sort the list using quick sort algorithm
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Get number of elements in the list
 //	Input:
 // 			none
@@ -648,7 +663,7 @@ INT64 TList::ReverseFind(PVOID iValue, INT64 iStartIndex, INT64 iMaxCount, INT64
 }
 //	...............................................................................................
 //	...............................................................................................
-//	// Find index of the specified item in reverse order
+//	Find index of the specified item in reverse order
 //	Input:
 // 			iValue - value to find
 // 			iStartIndex - start index to search from (<0 means from the end)
@@ -662,7 +677,7 @@ INT64 TList::ReverseFind(INT32 iValue, INT64 iStartIndex, INT64 iMaxCount, INT64
 }
 //	...............................................................................................
 //	...............................................................................................
-//	// Find index of the specified item in reverse order
+//	Find index of the specified item in reverse order
 //	Input:
 // 			iValue - value to find
 // 			iStartIndex - start index to search from (<0 means from the end)
@@ -676,7 +691,7 @@ INT64 TList::ReverseFind(UINT32 iValue, INT64 iStartIndex, INT64 iMaxCount, INT6
 }
 //	...............................................................................................
 //	...............................................................................................
-//	// Find index of the specified item in reverse order
+//	Find index of the specified item in reverse order
 //	Input:
 // 			iValue - value to find
 // 			iStartIndex - start index to search from (<0 means from the end)
@@ -690,7 +705,7 @@ INT64 TList::ReverseFind(INT64 iValue, INT64 iStartIndex, INT64 iMaxCount, INT64
 }
 //	...............................................................................................
 //	...............................................................................................
-//	// Find index of the specified item in reverse order
+//	Find index of the specified item in reverse order
 //	Input:
 // 			iValue - value to find
 // 			iStartIndex - start index to search from (<0 means from the end)
@@ -701,5 +716,150 @@ INT64 TList::ReverseFind(INT64 iValue, INT64 iStartIndex, INT64 iMaxCount, INT64
 //	...............................................................................................
 INT64 TList::ReverseFind(UINT64 iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccurrenceIndex) {
 	return ReverseFind((PVOID)iValue, iStartIndex, iMaxCount, iOccurrenceIndex); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the first occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindFirst(PVOID iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	if (iCompareFunction == NULL) return -1; // Is comparison function is NULL?
+	if (FCount == 0) return -1; // Is the list empty?
+
+	struct _CONTEXT {
+		PVOID Value;
+		TListBinarySearchCompareFunction CompareFunction;
+	} Context = { iValue, iCompareFunction };
+
+	// Run binary search
+	return BinarySearch(FValues, FCount, sizeof(PVOID), [](CONST_PVOID iSearchValue, CONST_PVOID iUserData)->INT32 {
+		_CONTEXT* V = (_CONTEXT*)iUserData;
+		return V->CompareFunction((PVOID)(*(CONST_PVOID*)iSearchValue), V->Value);
+		}, (CONST_PVOID)&Context, BINARY_SEARCH_FIRST_OCCURRENCE); // Perform binary search	
+
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the first occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindFirst(INT32 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindFirst((PVOID)(intptr_t)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the first occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindFirst(UINT32 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindFirst((PVOID)(uintptr_t)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the first occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindFirst(INT64 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindFirst((PVOID)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the first occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindFirst(UINT64 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindFirst((PVOID)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the last occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindLast(PVOID iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	if (iCompareFunction == NULL) return -1; // Is comparison function is NULL?
+	if (FCount == 0) return -1; // Is the list empty?
+
+	struct _CONTEXT {
+		PVOID Value;
+		TListBinarySearchCompareFunction CompareFunction;
+	} Context = { iValue, iCompareFunction };
+
+	// Run binary search
+	return BinarySearch(FValues, FCount, sizeof(PVOID), [](CONST_PVOID iSearchValue, CONST_PVOID iUserData)->INT32 {
+		_CONTEXT* V = (_CONTEXT*)iUserData;
+		return V->CompareFunction((PVOID)(*(CONST_PVOID*)iSearchValue), V->Value);
+		}, (CONST_PVOID)&Context, BINARY_SEARCH_LAST_OCCURRENCE); // Perform binary search	
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the last occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindLast(INT32 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindLast((PVOID)(intptr_t)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the last occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindLast(UINT32 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindLast((PVOID)(uintptr_t)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the last occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindLast(INT64 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindLast((PVOID)iValue, iCompareFunction); // Find as pointer
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find index of the last occurence of specified item of a sorted list using binary search
+//	Input:
+// 			iValue - value to find
+// 			iCompareFunction - comparison function
+//	Output:
+//			position of the found item or -1 if not found
+//	...............................................................................................
+INT64 TList::BinaryFindLast(UINT64 iValue, TListBinarySearchCompareFunction iCompareFunction) {
+	return BinaryFindLast((PVOID)iValue, iCompareFunction); // Find as pointer
 }
 //	...............................................................................................

@@ -18,6 +18,8 @@ void RunPerformanceTests_Environment(void) {
 	PCHAR P2 = PCHAR_ALLOC(10240);
 	if (P2 == NULL) return;
 
+	[[maybe_unused]] PUINT64 Data;
+
 	// TEnvironment::GenerateRandomUINT32()
 #if 0
 	MaxIters = 20000000;
@@ -354,6 +356,107 @@ void RunPerformanceTests_Environment(void) {
 	SW.Pause();
 	SW.PrintPerforanceResult("StrToDOUBLE", Iters);
 #endif
+	// qsort
+#if 0
+	MaxIters = 1000;
+
+	Data = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 8192; i++) Data[i] = 8193 - i;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		qsort(Data, 8192, sizeof(UINT64), [](CONST_PVOID i1, CONST_PVOID i2)->INT32 {
+			UINT64 u1 = *(PUINT64)i1;
+			UINT64 u2 = *(PUINT64)i2;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			});
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("qsort", Iters);
+	MEMORY_FREE(Data);
+#endif
+	// QuickSort
+#if 0
+	MaxIters = 1000;
+
+	Data = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 8192; i++) Data[i] = 8193 - i;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		QuickSort(Data, 8192, sizeof(UINT64), [](CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData)->INT32 {
+			INT64 u1 = ((PINT64)iData)[iIndex1];
+			INT64 u2 = ((PINT64)iData)[iIndex2];
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			});
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("QuickSort", Iters);
+	MEMORY_FREE(Data);
+#endif
+	// BinarySearch (any value)
+#if 0
+	MaxIters = 10000000;
+
+	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		UINT64 U64 = Iters % 1024;
+		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+			INT64 u1 = *((PUINT64)iData);
+			INT64 u2 = (UINT64)iUserData;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}, (CONST_PVOID)U64, BINARY_SEARCH_ANY_OCCURRENCE);
+		if (I != (INT64)U64) break;
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("BinarySearch (any value)", Iters);
+	MEMORY_FREE(Data);
+#endif
+	// BinarySearch (first value)
+#if 0
+	MaxIters = 10000000;
+
+	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		UINT64 U64 = Iters % 1024;
+		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+			INT64 u1 = *((PUINT64)iData);
+			INT64 u2 = (UINT64)iUserData;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}, (CONST_PVOID)U64, BINARY_SEARCH_FIRST_OCCURRENCE);
+		if (I != (INT64)U64) break;
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("BinarySearch (first value)", Iters);
+	MEMORY_FREE(Data);
+#endif
+	// BinarySearch (last value)
+#if 0
+	MaxIters = 10000000;
+
+	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		UINT64 U64 = Iters % 1024;
+		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+			INT64 u1 = *((PUINT64)iData);
+			INT64 u2 = (UINT64)iUserData;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}, (CONST_PVOID)U64, BINARY_SEARCH_LAST_OCCURRENCE);
+		if (I != (INT64)U64) break;
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("BinarySearch (last value)", Iters);
+	MEMORY_FREE(Data);
+#endif
 
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
@@ -587,7 +690,7 @@ void RunPerformanceTests_TList(void) {
 	TList L1, L2;
 
 	// TList::DeleteValue
-#if 1
+#if 0
 	MaxIters = 500000;
 
 	for (INT64 i = 0; i < 1024; i++) L1.Add(i & 3);
@@ -604,7 +707,7 @@ void RunPerformanceTests_TList(void) {
 	SW.PrintPerforanceResult("TList::DeleteValue + TList::CreateCopy", Iters);
 #endif
 	// TList::Find
-#if 1
+#if 0
 	MaxIters = 500000;
 
 	L1.SetCount(0);
@@ -620,7 +723,7 @@ void RunPerformanceTests_TList(void) {
 	SW.PrintPerforanceResult("TList::Find", Iters);
 #endif
 	// TList::ReverseFind
-#if 1
+#if 0
 	MaxIters = 500000;
 
 	L1.SetCount(0);
@@ -634,6 +737,67 @@ void RunPerformanceTests_TList(void) {
 	SW.Pause();
 
 	SW.PrintPerforanceResult("TList::ReverseFind", Iters);
+#endif
+	// TList::Sort
+#if 0
+	MaxIters = 10000;
+
+	L1.SetCount(0);
+	for (INT64 i = 0; i < 1024; i++) L1.Add((UINT64)TEnvironment::GenerateRandomUINT64());
+	L2.CreateCopy(&L1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		L1.CreateCopy(&L2);
+		L1.Sort([](PVOID iItem1, PVOID iItem2)->INT32 {
+			UINT64 u1 = (UINT64)iItem1;
+			UINT64 u2 = (UINT64)iItem2;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			});
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::Sort", Iters);
+#endif
+	// TList::BinaryFindFirst
+#if 0
+	MaxIters = 10000000;
+
+	L1.SetCount(0);
+	for (INT64 i = 0; i < 1024; i++) L1.Add((UINT64)i);
+	L2.CreateCopy(&L1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.BinaryFindFirst((UINT64)1, [](PVOID iSearchValue, PVOID iItem)->INT32 {
+			UINT64 u1 = (UINT64)iSearchValue;
+			UINT64 u2 = (UINT64)iItem;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}) != 1) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::BinaryFindFirst", Iters);
+#endif
+	// TList::BinaryFindLast
+#if 0
+	MaxIters = 10000000;
+
+	L1.SetCount(0);
+	for (INT64 i = 0; i < 1024; i++) L1.Add((UINT64)i);
+	L2.CreateCopy(&L1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.BinaryFindLast((UINT64)1, [](PVOID iSearchValue, PVOID iItem)->INT32 {
+			UINT64 u1 = (UINT64)iSearchValue;
+			UINT64 u2 = (UINT64)iItem;
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}) != 1) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TList::BinaryFindLast", Iters);
 #endif
 
 }

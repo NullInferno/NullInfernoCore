@@ -1,6 +1,8 @@
 #pragma once
 
 typedef void (*TListNotifyFunction)(PVOID iItem, INT64 iIndex); // Function prototype for list notification functions
+typedef INT32(*TListCompareItemsFunction)(PVOID iItem1, PVOID iItem2); // Function prototype for item comparison functions
+typedef INT32(*TListBinarySearchCompareFunction)(PVOID iSearchValue, PVOID iItem); // Function prototype for binary search comparison functions
 
 //	................................................................................................
 //	Class TList
@@ -20,6 +22,7 @@ public:
 	void SetCount(INT64 iNewCount, TListNotifyFunction iNotifyFunction = NULL); // Set number of elements in the list
 	void SetCapacityIncrement(INT64 iFCapacityIncrement); // Set capacity increment step
 	void CreateCopy(TList* iSourceList); // Create a copy of another list
+	void Sort(TListCompareItemsFunction iCompareFunction); // Sort the list using the specified comparison function
 public:
 	INT64 Count(void); // Get number of elements in the list
 	PVOID Item(INT64 iIndex, PVOID iDefaultValue = NULL); // Get item at specified index
@@ -64,5 +67,15 @@ public:
 	INT64 ReverseFind(UINT32 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
 	INT64 ReverseFind(INT64 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
 	INT64 ReverseFind(UINT64 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
+	INT64 BinaryFindFirst(PVOID iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the first occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindFirst(INT32 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the first occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindFirst(UINT32 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the first occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindFirst(INT64 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the first occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindFirst(UINT64 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the first occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindLast(PVOID iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the last occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindLast(INT32 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the last occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindLast(UINT32 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the last occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindLast(INT64 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the last occurence of specified item of a sorted list using binary search
+	INT64 BinaryFindLast(UINT64 iValue, TListBinarySearchCompareFunction iCompareFunction); // Find index of the last occurence of specified item of a sorted list using binary search
 };
 //	................................................................................................

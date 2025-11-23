@@ -132,6 +132,10 @@
 
 #endif
 
+// Type definitions
+
+typedef INT32(*TCompareItemsFunction)(CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData); // Function prototype for item comparison functions
+typedef INT32(*TBinarySearchCompareFunction)(CONST_PVOID iData, CONST_PVOID iUserData); // Function prototype for item comparison functions
 
 // Class forward declarations
 
@@ -155,6 +159,10 @@ class TList;
 #define MAX_INT64 (INT64)9223372036854775807LL
 #define MIN_INT64 (INT64)-9223372036854775808LL
 #define MAX_UINT64 (UINT64)18446744073709551615ULL
+
+#define BINARY_SEARCH_ANY_OCCURRENCE 0
+#define BINARY_SEARCH_FIRST_OCCURRENCE 1
+#define BINARY_SEARCH_LAST_OCCURRENCE 2
 
 // Macros
 
@@ -199,6 +207,9 @@ class TList;
 #define FNC_STRRCHR strrchr
 
 // Miscellaneous functions
+
+void QuickSort(CONST_PVOID iData, INT64 iItemsCount, INT64 iItemSize, TCompareItemsFunction iCompareFunction, CONST_PVOID iUserData = NULL); // Quick sort algorithm
+INT64 BinarySearch(CONST_PVOID iData, INT64 iItemsCount, INT64 iItemSize, TBinarySearchCompareFunction iCompareFunction, CONST_PVOID iUserData = NULL, INT32 iSearchMode = BINARY_SEARCH_ANY_OCCURRENCE); // Find item in sorted data using binary search
 
 DOUBLE RoundDOUBLE(DOUBLE iValue, INT32 iDecimalPlaces); // Round DOUBLE to specified decimal places
 BOOL IsEqualDOUBLES(DOUBLE iValue1, DOUBLE iValue2, DOUBLE iEpsilon = 1e-13); // Check if two DOUBLE values are equal 
