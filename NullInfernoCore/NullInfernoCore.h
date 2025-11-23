@@ -143,6 +143,7 @@ class TEnvironment;
 class TStopwatch;
 class TString;
 class TList;
+class TBytes;
 
 // Include other headers
 
@@ -150,6 +151,7 @@ class TList;
 #include "TStopwatch.h"
 #include "TString.h"
 #include "TList.h"
+#include "TBytes.h"
 
 // Constants
 
@@ -205,6 +207,8 @@ class TList;
 #define FNC_MEMMOVE memmove
 #define FNC_STRCHR strchr
 #define FNC_STRRCHR strrchr
+#define FNC_MEMSET memset
+#define FNC_MEMCMP memcmp
 
 // Miscellaneous functions
 
@@ -218,7 +222,7 @@ INT32 INT32ToStr(INT32 iValue, PCHAR oBuffer); // Convert INT32 to string
 INT32 UINT32ToStr(UINT32 iValue, PCHAR oBuffer); // Convert UINT32 to string
 INT32 INT64ToStr(INT64 iValue, PCHAR oBuffer); // Convert INT64 to string
 INT32 UINT64ToStr(UINT64 iValue, PCHAR oBuffer); // Convert UINT64 to string
-INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces = 6); // Convert DOUBLE to string
+INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Convert DOUBLE to string
 
 INT32 StrToINT32(CONST_PCHAR iStr, INT32 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to INT32
 UINT32 StrToUINT32(CONST_PCHAR iStr, UINT32 iDefaultValue = 0, CHAR iTerminatingChar = ' '); // Convert string to UINT32
@@ -227,3 +231,4 @@ UINT64 StrToUINT64(CONST_PCHAR iStr, UINT64 iDefaultValue = 0, CHAR iTerminating
 DOUBLE StrToDOUBLE(CONST_PCHAR iStr, DOUBLE iDefaultValue = 0.0, CHAR iDecimalPointChar = '.', CHAR iTerminatingChar = ' '); // Convert string to DOUBLE
 
 INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCHAR oDstStr, INT32 iDstCodepage); // Convert string between codepages
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable = NULL); // Generate 64-bit hash from data using djb2 algorithm

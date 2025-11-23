@@ -545,6 +545,19 @@ BOOL RunValidityTests_TString(void) {
 		}
 	}
 
+	S1.SetValue("abcdefgh"); S2.SetValue("aBcDeFgH");
+	if (S1.GetHashCode() == S2.GetHashCode()) return TEnvironment::ShowTestErrorMessage(-1183, "TString::GetHashCode");
+	if (S1.GetCaseHashCode() != S2.GetCaseHashCode()) return TEnvironment::ShowTestErrorMessage(-1184, "TString::GetCaseHashCode");
+
+	S1.SetValue("abc"); S1.AppendValue("def", -1); if ((S1.Length != 6) || (FNC_STRCMP(S1.PChar(), "abcdef") != 0)) return TEnvironment::ShowTestErrorMessage(-1185, "TString::AppendValue");
+	S1.SetValue("abc"); S1.AppendValue("def", 2); if ((S1.Length != 5) || (FNC_STRCMP(S1.PChar(), "abcde") != 0)) return TEnvironment::ShowTestErrorMessage(-1186, "TString::AppendValue");
+	S1.SetValue("abc "); S1.AppendValue((INT32)-123); if ((S1.Length != 8) || (FNC_STRCMP(S1.PChar(), "abc -123") != 0)) return TEnvironment::ShowTestErrorMessage(-1187, "TString::AppendValue");
+	S1.SetValue("abc "); S1.AppendValue((UINT32)123); if ((S1.Length != 7) || (FNC_STRCMP(S1.PChar(), "abc 123") != 0)) return TEnvironment::ShowTestErrorMessage(-1188, "TString::AppendValue");
+	S1.SetValue("abc "); S1.AppendValue((INT64)-1234); if ((S1.Length != 9) || (FNC_STRCMP(S1.PChar(), "abc -1234") != 0)) return TEnvironment::ShowTestErrorMessage(-1189, "TString::AppendValue");
+	S1.SetValue("abc "); S1.AppendValue((DOUBLE)-1234.25, 6, ','); if ((S1.Length != 16) || (FNC_STRCMP(S1.PChar(), "abc -1234,250000") != 0)) return TEnvironment::ShowTestErrorMessage(-1190, "TString::AppendValue");
+	S1.SetValue("abc"); S1.AppendChars('c', 3, false); if ((S1.Length != 6) || (FNC_STRCMP(S1.PChar(), "abcccc") != 0)) return TEnvironment::ShowTestErrorMessage(-1191, "TString::AppendChars");
+	S1.SetValue("abc"); S1.AppendChars('c', 3, true); if ((S1.Length != 3) || (FNC_STRCMP(S1.PChar(), "abc") != 0)) return TEnvironment::ShowTestErrorMessage(-1192, "TString::AppendChars");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true; // All tests passed
@@ -671,6 +684,53 @@ BOOL RunValidityTests_TList(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TBytes
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TBytes(void) {
+
+	TBytes B1, B2;
+
+	PBYTE P1 = (PBYTE)MEMORY_ALLOC(1024);
+	if (P1 == NULL) return TEnvironment::ShowTestErrorMessage(-3999, "TBytes::Memory allocation failed");
+	
+	B1.SetBytes('a', 1);
+	if ((B1.Count != 1) || (B1.PByte()[0] != 'a')) return TEnvironment::ShowTestErrorMessage(-3001, "TBytes::SetBytes");
+
+	for (INT64 i = 1; i <= 1024; i++) {
+		TBytes::GenerateRandomBytes(P1, i); B1.SetValue(P1, i); if ((B1.Count != i) || (FNC_MEMCMP(B1.PByte(), P1, i) != 0)) return TEnvironment::ShowTestErrorMessage(-3002, "TBytes::SetValue");
+	}
+
+	TBytes::GenerateRandomBytes(P1, 512); B1.SetValue(P1, 256); B1.AppendBytes(P1 + 256, 256);
+	if ((B1.Count != 512) || (FNC_MEMCMP(B1.PByte(), P1, 512) != 0)) return TEnvironment::ShowTestErrorMessage(-3003, "TBytes::AppendBytes");
+
+	TBytes::GenerateRandomBytes(P1, 512); B1.SetValue(P1 + 256, 256); B1.InsertBytes(0, P1, 256);
+	if ((B1.Count != 512) || (FNC_MEMCMP(B1.PByte(), P1, 512) != 0)) return TEnvironment::ShowTestErrorMessage(-3004, "TBytes::InsertBytes");
+
+	B1.SetCount(0); if (B1.Compare((PBYTE)"ab", 0, -1) >= 0) return TEnvironment::ShowTestErrorMessage(-3005, "TBytes::Compare");
+	B1.SetCount(0); if (B1.Compare((PBYTE)"ab", 0, 0) != 0) return TEnvironment::ShowTestErrorMessage(-3006, "TBytes::Compare");
+	B1.SetValue((CONST_PBYTE)"abcd", 4); if (B1.Compare((PBYTE)"ab", 0, 0) <= 0) return TEnvironment::ShowTestErrorMessage(-3007, "TBytes::Compare");
+	B1.SetValue((CONST_PBYTE)"abcd", 4); if (B1.Compare((PBYTE)"ab", 0, 1) != 0) return TEnvironment::ShowTestErrorMessage(-3008, "TBytes::Compare");
+	B1.SetValue((CONST_PBYTE)"abcd", 4); if (B1.Compare((PBYTE)"ab", 0, 2) != 0) return TEnvironment::ShowTestErrorMessage(-3009, "TBytes::Compare");
+	B1.SetValue((CONST_PBYTE)"abcd", 4); if (B1.Compare((PBYTE)"ab", 1, 2) <= 0) return TEnvironment::ShowTestErrorMessage(-3010, "TBytes::Compare");
+
+	for (INT64 i = 1; i < 1024; i++) {
+		TBytes::GenerateRandomBytes(P1, 1024);
+		B1.SetValue(P1, i);
+		INT32 R = FNC_MEMCMP(B1.PByte(), P1, i); if (R != 0) R = R < 0 ? -1 : 1;
+		INT32 R1 = B1.Compare(P1, 0, -1); if (R1 != 0) R1 = R1 < 0 ? -1 : 1;
+		if (R != R1) return TEnvironment::ShowTestErrorMessage(-3011, "TBytes::Compare (%lld)", i);
+	}
+
+	MEMORY_FREE(P1);
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all validity tests
 //	Input:
 //			none
@@ -689,6 +749,10 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TList... ");
 	if (!RunValidityTests_TList()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TBytes... ");
+	if (!RunValidityTests_TBytes()) return false;
 	printf("OK.");
 
 	return true; // all tests passed

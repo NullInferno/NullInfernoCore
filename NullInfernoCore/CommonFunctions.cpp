@@ -151,10 +151,11 @@ INT32 UINT64ToStr(UINT64 iValue, PCHAR oBuffer) {
 //			iValue - DOUBLE value
 // 			oBuffer - output buffer
 //			iDecimalPlaces - number of decimal places (mathematically correct, 0..12)
+// 			iDecimalPointChar - character to use as decimal point
 //	Output:
 //			length of resulting string
 //	................................................................................................
-INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces) {
+INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces, CHAR iDecimalPointChar) {
 	if (iDecimalPlaces < 0) { // Invalid number of decimal places?
 		iDecimalPlaces = 0;
 	}
@@ -184,7 +185,7 @@ INT32 DOUBLEToStr(DOUBLE iValue, PCHAR oBuffer, INT32 iDecimalPlaces) {
 	else {
 		INT32 IntLen = UINT64ToStr((UINT64)IntPart, P); // Convert integer part
 		P += IntLen;
-		P[0] = '.';
+		P[0] = iDecimalPointChar;
 		P++;
 
 		CHAR BUF[22];
@@ -489,6 +490,35 @@ INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCH
 	FNC_STRCPY(oDstStr, iSrcStr);
 	return FNC_STRLEN(oDstStr);
 #endif
+}
+
+//	................................................................................................
+//  Generate 64-bit hash from data using djb2 algorithm
+//	Input:
+//			iData - input data
+// 			iDataSize - size of input data
+// 			iTransformTable - transformation table
+//	Output:
+//			hash value
+//	................................................................................................
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable) {
+	if (iDataSize <= 0) return 0; // No data?
+
+	CONST_PBYTE Data = (CONST_PBYTE)iData;
+	UINT64 Result = 5381ULL; // Initial hash value
+
+	if (iTransformTable == NULL) {
+		for (INT64 i = 0; i < iDataSize; i++) {
+			Result = ((Result << 5) + Result) + Data[i]; // hash * 33 + c
+		}
+	}
+	else {
+		CONST_PBYTE TransformTable = (CONST_PBYTE)iTransformTable;
+		for (INT64 i = 0; i < iDataSize; i++) {
+			Result = ((Result << 5) + Result) + TransformTable[Data[i]]; // hash * 33 + c
+		}
+	}
+	return Result; // Return hash value
 }
 //	................................................................................................
 

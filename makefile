@@ -16,6 +16,7 @@ SRCS_LIB = TEnvironment.cpp \
 			CommonFunctions.cpp \
 			TString.cpp \
 			TList.cpp \
+			TBytes.cpp \
 
 OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
 OBJDIR_TESTER = /home/nullinferno/projects/NullInfernoCore/objs

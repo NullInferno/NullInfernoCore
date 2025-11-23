@@ -18,7 +18,8 @@ void RunPerformanceTests_Environment(void) {
 	PCHAR P2 = PCHAR_ALLOC(10240);
 	if (P2 == NULL) return;
 
-	[[maybe_unused]] PUINT64 Data;
+	[[maybe_unused]] PUINT64 Data64;
+	[[maybe_unused]] PBYTE DataB;
 
 	// TEnvironment::GenerateRandomUINT32()
 #if 0
@@ -360,12 +361,12 @@ void RunPerformanceTests_Environment(void) {
 #if 0
 	MaxIters = 1000;
 
-	Data = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
-	for (UINT64 i = 0; i < 8192; i++) Data[i] = 8193 - i;
+	Data64 = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 8192; i++) Data64[i] = 8193 - i;
 
 	SW.Start();
 	for (Iters = 0; Iters < MaxIters; Iters++) {
-		qsort(Data, 8192, sizeof(UINT64), [](CONST_PVOID i1, CONST_PVOID i2)->INT32 {
+		qsort(Data64, 8192, sizeof(UINT64), [](CONST_PVOID i1, CONST_PVOID i2)->INT32 {
 			UINT64 u1 = *(PUINT64)i1;
 			UINT64 u2 = *(PUINT64)i2;
 			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
@@ -373,18 +374,18 @@ void RunPerformanceTests_Environment(void) {
 	}
 	SW.Pause();
 	SW.PrintPerforanceResult("qsort", Iters);
-	MEMORY_FREE(Data);
+	MEMORY_FREE(Data64);
 #endif
 	// QuickSort
 #if 0
 	MaxIters = 1000;
 
-	Data = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
-	for (UINT64 i = 0; i < 8192; i++) Data[i] = 8193 - i;
+	Data64 = (PUINT64)MEMORY_ALLOC(8192 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 8192; i++) Data64[i] = 8193 - i;
 
 	SW.Start();
 	for (Iters = 0; Iters < MaxIters; Iters++) {
-		QuickSort(Data, 8192, sizeof(UINT64), [](CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData)->INT32 {
+		QuickSort(Data64, 8192, sizeof(UINT64), [](CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData)->INT32 {
 			INT64 u1 = ((PINT64)iData)[iIndex1];
 			INT64 u2 = ((PINT64)iData)[iIndex2];
 			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
@@ -392,19 +393,19 @@ void RunPerformanceTests_Environment(void) {
 	}
 	SW.Pause();
 	SW.PrintPerforanceResult("QuickSort", Iters);
-	MEMORY_FREE(Data);
+	MEMORY_FREE(Data64);
 #endif
 	// BinarySearch (any value)
 #if 0
 	MaxIters = 10000000;
 
-	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
-	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+	Data64 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data64[i] = i;
 
 	SW.Start();
 	for (Iters = 0; Iters < MaxIters; Iters++) {
 		UINT64 U64 = Iters % 1024;
-		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+		INT64 I = BinarySearch(Data64, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
 			INT64 u1 = *((PUINT64)iData);
 			INT64 u2 = (UINT64)iUserData;
 			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
@@ -413,19 +414,19 @@ void RunPerformanceTests_Environment(void) {
 	}
 	SW.Pause();
 	SW.PrintPerforanceResult("BinarySearch (any value)", Iters);
-	MEMORY_FREE(Data);
+	MEMORY_FREE(Data64);
 #endif
 	// BinarySearch (first value)
 #if 0
 	MaxIters = 10000000;
 
-	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
-	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+	Data64 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data64[i] = i;
 
 	SW.Start();
 	for (Iters = 0; Iters < MaxIters; Iters++) {
 		UINT64 U64 = Iters % 1024;
-		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+		INT64 I = BinarySearch(Data64, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
 			INT64 u1 = *((PUINT64)iData);
 			INT64 u2 = (UINT64)iUserData;
 			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
@@ -434,19 +435,19 @@ void RunPerformanceTests_Environment(void) {
 	}
 	SW.Pause();
 	SW.PrintPerforanceResult("BinarySearch (first value)", Iters);
-	MEMORY_FREE(Data);
+	MEMORY_FREE(Data64);
 #endif
 	// BinarySearch (last value)
 #if 0
 	MaxIters = 10000000;
 
-	Data = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
-	for (UINT64 i = 0; i < 1024; i++) Data[i] = i;
+	Data64 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	for (UINT64 i = 0; i < 1024; i++) Data64[i] = i;
 
 	SW.Start();
 	for (Iters = 0; Iters < MaxIters; Iters++) {
 		UINT64 U64 = Iters % 1024;
-		INT64 I = BinarySearch(Data, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
+		INT64 I = BinarySearch(Data64, 1024, sizeof(UINT64), [](CONST_PVOID iData, CONST_PVOID iUserData)->INT32 {
 			INT64 u1 = *((PUINT64)iData);
 			INT64 u2 = (UINT64)iUserData;
 			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
@@ -455,7 +456,22 @@ void RunPerformanceTests_Environment(void) {
 	}
 	SW.Pause();
 	SW.PrintPerforanceResult("BinarySearch (last value)", Iters);
-	MEMORY_FREE(Data);
+	MEMORY_FREE(Data64);
+#endif
+	// GenerateHash64
+#if 0
+	MaxIters = 1000000;
+
+	DataB = (PBYTE)MEMORY_ALLOC(1024);
+	TBytes::GenerateRandomBytes(DataB, 1024);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (GenerateHash64(DataB, 1024) == 0) break;
+	}
+	SW.Pause();
+	SW.PrintPerforanceResult("GenerateHash64", Iters);
+	MEMORY_FREE(DataB);
 #endif
 
 	PCHAR_FREE(P1);
@@ -667,6 +683,32 @@ void RunPerformanceTests_TString(void) {
 	SW.Pause();
 
 	SW.PrintPerforanceResult("TString::ReverseCaseFindChar (15 chars)", Iters);
+#endif
+	// TString::GetHashCode
+#if 0
+	MaxIters = 1000000;
+	S1.SetRandomBASE64Value(1024);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.GetHashCode() == 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString:GetHashCode", Iters);
+#endif
+	// TString::GetCaseHashCode
+#if 0
+	MaxIters = 1000000;
+	S1.SetRandomBASE64Value(1024);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (S1.GetCaseHashCode() == 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TString:GetCaseHashCode", Iters);
 #endif
 
 	PCHAR_FREE(P1);

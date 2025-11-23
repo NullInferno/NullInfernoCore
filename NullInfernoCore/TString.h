@@ -31,8 +31,9 @@ public:
 	void SetValue(UINT32 iValue); // Set value
 	void SetValue(INT64 iValue); // Set value
 	void SetValue(UINT64 iValue); // Set value
-	void SetValue(DOUBLE iValue, INT32 iDecimalPlaces = 6); // Set value
+	void SetValue(DOUBLE iValue, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Set value
 	void SetSharedValue(PCHAR iValue, INT64 iLength = -1); // Set shared value
+	void SetRandomBASE64Value(INT64 iLength); // Set random BASE64 string value
 public:
 	CONST_PCHAR PChar(void); // Get value
 	INT32 AsINT32(void); // Get value
@@ -48,9 +49,21 @@ public:
 	INT32 CaseCompare(TString* iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 	INT32 CaseCompare(TString& iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 public:
+	void AppendValue(CONST_PCHAR iValue, INT64 iLength = -1); // Append value to the end
+	void AppendValue(TString& iValue); // Append value to the end
+	void AppendValue(TString* iValue); // Append value to the end
+	void AppendValue(INT32 iValue); // Append value to the end
+	void AppendValue(UINT32 iValue); // Append value to the end
+	void AppendValue(INT64 iValue); // Append value to the end
+	void AppendValue(UINT64 iValue); // Append value to the end
+	void AppendValue(DOUBLE iValue, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Append value to the end
+	void AppendChars(CHAR iValue, INT64 iCount = 1, BOOL iAppendOnlyIfNotExists = false); // Append chars to the end
+public:
 	void ToLowercase(INT32 iCodePage = 28591); // Convert to lower case
 	void ToUppercase(INT32 iCodePage = 28591); // Convert to upper case
 	void Format(CONST_PCHAR iFormattedString, ...); // Format the string
+	UINT64 GetHashCode(void); // Get hash code of the string
+	UINT64 GetCaseHashCode(INT32 iCodePage = 28591); // Get hash code of the string case insensitive
 public:
 	INT64 FindChar(CHAR iValue, INT64 iStartIndex = 0, INT64 iMaxCharsCount = -1, INT64 iOccurrenceIndex = 1); // Find character in the string
 	INT64 CaseFindChar(CHAR iValue, INT64 iStartIndex = 0, INT64 iMaxCharsCount = -1, INT64 iOccurrenceIndex = 1, INT32 iCodePage = 28591); // Find character in the string case insensitive

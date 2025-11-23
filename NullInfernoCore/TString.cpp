@@ -460,12 +460,13 @@ void TString::SetValue(UINT64 iValue) {
 //	Input:
 // 			iValue - value to set
 //			iDecimalPlaces - number of decimal places
+// 			iDecimalPointChar - character to use as decimal point
 //	Output:
 //			none
 //	...............................................................................................
-void TString::SetValue(DOUBLE iValue, INT32 iDecimalPlaces) {
+void TString::SetValue(DOUBLE iValue, INT32 iDecimalPlaces, CHAR iDecimalPointChar) {
 	CHAR BUF[32]; // Buffer for string representation
-	INT32 L = DOUBLEToStr(iValue, BUF, iDecimalPlaces); // Convert to string
+	INT32 L = DOUBLEToStr(iValue, BUF, iDecimalPlaces, iDecimalPointChar); // Convert to string
 	SetValue(BUF, L); // Set the value
 }
 //	...............................................................................................
@@ -482,6 +483,23 @@ void TString::SetSharedValue(PCHAR iValue, INT64 iLength) {
 	if (IS_PCHAR_EMPTY(iValue)) return; // Empty string?
 	Value = iValue;
 	Length = (iLength < 0) ? FNC_STRLEN(iValue) : iLength; // Determine length
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Set random BASE64 string value
+//	Input:
+// 			iLength - length of the string to generate
+//	Output:
+//			none
+//	...............................................................................................
+void TString::SetRandomBASE64Value(INT64 iLength) {
+	if (iLength <= 0) SetLength(0); // Empty string
+	else {
+		if (Reallocate(iLength, false)) { // Reallocate memory
+			GenerateRandomBASE64String(Value, iLength); // Generate random BASE64 string
+			Length = iLength; // Set length
+		}
+	}
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -711,6 +729,140 @@ INT32 TString::CaseCompare(TString& iValue, INT64 iStart, INT64 iMaxLength, INT3
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+// 			iLength - length of the value or -1 for null-terminated string
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(CONST_PCHAR iValue, INT64 iLength) {
+	if (IS_PCHAR_EMPTY(iValue)) return; // Nothing to append?
+
+	INT64 L = (iLength < 0) ? FNC_STRLEN(iValue) : iLength; // Determine length
+	if (L == 0) return; // Nothing to append?
+	if (Reallocate(L, true)) { // Reallocate memory
+		FNC_MEMCPY(Value + Length, iValue, L); // Copy the content
+		Length += L; // Update length
+		Value[Length] = 0; // Terminate the string
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(TString& iValue) {
+	AppendValue((CONST_PCHAR)iValue.Value, iValue.Length); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(TString* iValue) {
+	if (iValue == NULL) return; // Nothing to append?
+	AppendValue((CONST_PCHAR)iValue->Value, iValue->Length); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(INT32 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = INT32ToStr(iValue, BUF); // Convert to string
+	AppendValue(BUF, L); // Append the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(UINT32 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = UINT32ToStr(iValue, BUF); // Convert to string
+	AppendValue(BUF, L); // Append the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(INT64 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = INT64ToStr(iValue, BUF); // Convert to string
+	AppendValue(BUF, L); // Append the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(UINT64 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = UINT64ToStr(iValue, BUF); // Convert to string
+	AppendValue(BUF, L); // Append the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append value to the end
+//	Input:
+// 			iValue - value to append
+// 			iDecimalPlaces - number of decimal places
+// 			iDecimalPointChar - character to use as decimal point
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendValue(DOUBLE iValue, INT32 iDecimalPlaces, CHAR iDecimalPointChar) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = DOUBLEToStr(iValue, BUF, iDecimalPlaces, iDecimalPointChar); // Convert to string
+	AppendValue(BUF, L); // Append the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append chars to the end
+//	Input:
+// 			iValue - char(s) to append
+// 			iCount - number of chars to append
+// 			iAppendOnlyIfNotExists - whether to append only if the char does not already exist on end of the string
+//	Output:
+//			none
+//	...............................................................................................
+void TString::AppendChars(CHAR iValue, INT64 iCount, BOOL iAppendOnlyIfNotExists) {
+	if (iCount <= 0) return; // Nothing to append?
+	if (iAppendOnlyIfNotExists) { // Check if the char already exists at the end
+		if (Length > 0) {
+			if (Value[Length - 1] == iValue) return; // Already exists
+		}
+	}
+	if (Reallocate(iCount, true)) { // Reallocate memory
+		//for (INT64 i = 0; i < iCount; i++) Value[Length + i] = iValue; // Append the chars
+		FNC_MEMSET(Value + Length, iValue, iCount); // Append the chars
+		Length += iCount; // Update length
+		Value[Length] = 0; // Terminate the string
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Convert to lower case
 //	Input:
 // 			iCodePage - code page to use for case conversion
@@ -759,6 +911,31 @@ void TString::Format(CONST_PCHAR iFormattedString, ...) {
 		Value[Length] = 0; // Terminate the string
 	}
 	va_end(args);
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get hash code of the string
+//	Input:
+// 			none
+//	Output:
+//			hash code
+//	...............................................................................................
+UINT64 TString::GetHashCode(void) {
+	if (Length == 0) return 0; // Empty content?
+	return GenerateHash64(Value, (INT64)Length); // Generate hash code
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get hash code of the string
+//	Input:
+// 			iCodePage - code page to use for case conversion
+//	Output:
+//			hash code
+//	...............................................................................................
+UINT64 TString::GetCaseHashCode(INT32 iCodePage) {
+	if (Length == 0) return 0; // Empty content?
+	MAKE_LOWER_CASE_TABLE_POINTER(CaseTable, iCodePage); // Get the case conversion table
+	return GenerateHash64(Value, (INT64)Length, CaseTable); // Generate hash code
 }
 //	...............................................................................................
 //	...............................................................................................
