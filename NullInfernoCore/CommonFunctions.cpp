@@ -498,22 +498,37 @@ INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCH
 //			iData - input data
 // 			iDataSize - size of input data
 // 			iTransformTable - transformation table
+// 			iTerminator - terminator character or -1 for no terminator
 //	Output:
 //			hash value
 //	................................................................................................
-UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable) {
-	if (iDataSize <= 0) return 0; // No data?
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable, INT32 iTerminator) {
+	if ((iTerminator == -1) && (iDataSize <= 0)) return 0; // No data?
 
 	CONST_PBYTE Data = (CONST_PBYTE)iData;
 	UINT64 Result = 5381ULL; // Initial hash value
 
 	if (iTransformTable == NULL) {
+		if (iTerminator != -1) { // Terminator specified?
+			BYTE T = (BYTE)iTerminator;
+			for (INT64 i = 0; Data[i] != T; i++) {
+				Result = ((Result << 5) + Result) + Data[i]; // hash * 33 + c
+			}
+			return Result; // Return hash value
+		}
 		for (INT64 i = 0; i < iDataSize; i++) {
 			Result = ((Result << 5) + Result) + Data[i]; // hash * 33 + c
 		}
 	}
 	else {
 		CONST_PBYTE TransformTable = (CONST_PBYTE)iTransformTable;
+		if (iTerminator != -1) { // Terminator specified?
+			BYTE T = (BYTE)iTerminator;
+			for (INT64 i = 0; Data[i] != T; i++) {
+				Result = ((Result << 5) + Result) + TransformTable[Data[i]]; // hash * 33 + c
+			}
+			return Result; // Return hash value
+		}
 		for (INT64 i = 0; i < iDataSize; i++) {
 			Result = ((Result << 5) + Result) + TransformTable[Data[i]]; // hash * 33 + c
 		}

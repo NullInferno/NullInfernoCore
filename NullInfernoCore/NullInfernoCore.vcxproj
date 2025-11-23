@@ -150,6 +150,7 @@
     <ClInclude Include="TBytes.h" />
     <ClInclude Include="TEnvironment.h" />
     <ClInclude Include="TList.h" />
+    <ClInclude Include="TParamsList.h" />
     <ClInclude Include="TStopwatch.h" />
     <ClInclude Include="TString.h" />
   </ItemGroup>
@@ -158,6 +159,7 @@
     <ClCompile Include="TBytes.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
     <ClCompile Include="TList.cpp" />
+    <ClCompile Include="TParamsList.cpp" />
     <ClCompile Include="TStopwatch.cpp" />
     <ClCompile Include="TString.cpp" />
   </ItemGroup>

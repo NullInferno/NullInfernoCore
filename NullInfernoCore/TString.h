@@ -80,5 +80,7 @@ public:
 	void SetLength(INT64 iLength); // Set the length of the string
 public:
 	static INT64 GenerateRandomBASE64String(PCHAR oBuffer, INT64 iLength); // Generate a random BASE64 string
+	static UINT64 GenerateHashCode(CONST_PCHAR iValue, INT64 iLength = -1); // Generate hash code of the string data
+	static UINT64 GenerateCaseHashCode(CONST_PCHAR iValue, INT64 iLength = -1, INT32 iCodePage = 28591); // Generate hash code of the string data case insensitive
 };
 //	...............................................................................................

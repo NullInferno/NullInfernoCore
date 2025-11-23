@@ -137,22 +137,6 @@
 typedef INT32(*TCompareItemsFunction)(CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData); // Function prototype for item comparison functions
 typedef INT32(*TBinarySearchCompareFunction)(CONST_PVOID iData, CONST_PVOID iUserData); // Function prototype for item comparison functions
 
-// Class forward declarations
-
-class TEnvironment;
-class TStopwatch;
-class TString;
-class TList;
-class TBytes;
-
-// Include other headers
-
-#include "TEnvironment.h"
-#include "TStopwatch.h"
-#include "TString.h"
-#include "TList.h"
-#include "TBytes.h"
-
 // Constants
 
 #define MAX_INT32 (INT32)2147483647
@@ -161,15 +145,35 @@ class TBytes;
 #define MAX_INT64 (INT64)9223372036854775807LL
 #define MIN_INT64 (INT64)-9223372036854775808LL
 #define MAX_UINT64 (UINT64)18446744073709551615ULL
+#define DATETTIME_EMPTY (DATETIME)0xffffffffffffffffull
 
 #define BINARY_SEARCH_ANY_OCCURRENCE 0
 #define BINARY_SEARCH_FIRST_OCCURRENCE 1
 #define BINARY_SEARCH_LAST_OCCURRENCE 2
 
+// Class forward declarations
+
+class TEnvironment;
+class TStopwatch;
+class TString;
+class TList;
+class TBytes;
+class TParamsList;
+
+// Include other headers
+
+#include "TEnvironment.h"
+#include "TStopwatch.h"
+#include "TString.h"
+#include "TList.h"
+#include "TBytes.h"
+#include "TParamsList.h"
+
 // Macros
 
 #define EXCHANGE_DOUBLE(_v1, _v2) { DOUBLE iTemp = _v1; _v1 = _v2; _v2 = iTemp; }
 #define ALIGN16(_Val) (((_Val) & ~15) + 16)
+#define ALIGN128(_Val) (((_Val) & ~127) + 128)
 #define IS_INDEX_IN(_Index, _Start, _End) (((_Index) >= (_Start)) && ((_Index) < (_End)))
 #define IS_INDEX_OUT(_Index, _Start, _End) (((_Index) < (_Start)) || ((_Index) >= (_End)))
 #define MIN(_V1, _V2) (((_V1) < (_V2)) ? (_V1) : (_V2))
@@ -231,4 +235,4 @@ UINT64 StrToUINT64(CONST_PCHAR iStr, UINT64 iDefaultValue = 0, CHAR iTerminating
 DOUBLE StrToDOUBLE(CONST_PCHAR iStr, DOUBLE iDefaultValue = 0.0, CHAR iDecimalPointChar = '.', CHAR iTerminatingChar = ' '); // Convert string to DOUBLE
 
 INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCHAR oDstStr, INT32 iDstCodepage); // Convert string between codepages
-UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable = NULL); // Generate 64-bit hash from data using djb2 algorithm
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable = NULL, INT32 iTerminator = -1); // Generate 64-bit hash from data using djb2 algorithm

@@ -200,6 +200,34 @@ INT64 TString::GenerateRandomBASE64String(PCHAR oBuffer, INT64 iLength) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Generate hash code of the string data
+//	Input:
+// 			iValue - value to generate hash code for
+// 			iLength - length of the value or -1 for null-terminated string
+//	Output:
+//			hash code
+//	...............................................................................................
+UINT64 TString::GenerateHashCode(CONST_PCHAR iValue, INT64 iLength) {
+	if (IS_PCHAR_EMPTY(iValue)) return 0; // Null string?
+	return iLength < 0 ? GenerateHash64(iValue, -1, NULL, 0) : GenerateHash64(iValue, iLength, NULL, -1); // Generate hash code
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Generate hash code of the string data ignoring case
+//	Input:
+// 			iValue - value to generate hash code for
+// 			iLength - length of the value or -1 for null-terminated string
+// 			iCodePage - code page to use for case conversion
+//	Output:
+//			hash code
+//	...............................................................................................
+UINT64 TString::GenerateCaseHashCode(CONST_PCHAR iValue, INT64 iLength, INT32 iCodePage) {
+	if (IS_PCHAR_EMPTY(iValue)) return 0; // Null string?
+	MAKE_LOWER_CASE_TABLE_POINTER(CaseTable, iCodePage); // Get the case conversion table
+	return iLength < 0 ? GenerateHash64(iValue, -1, CaseTable, 0) : GenerateHash64(iValue, iLength, CaseTable, -1); // Generate hash code
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Constructor
 //	Input:
 // 			none

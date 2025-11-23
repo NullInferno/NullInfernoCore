@@ -11,14 +11,20 @@ public:
 	INT64 Count; // Length of current content
 public:
 	TBytes(void); // Constructor
+	TBytes(CONST_PBYTE iValue, INT64 iBytesCount); // Constructor
+	TBytes(TBytes* iValue); // Constructor
+	TBytes(TBytes& iValue); // Constructor
 	~TBytes(void); // Destructor
 public:
 	CONST_PBYTE PByte(void); // Get value
+	UINT64 GetHashCode(void); // Get hash code of the data
 public:
 	void Release(void); // Release the memory
 	BOOL Reallocate(INT64 iNewCapacity, BOOL iKeepContent = false); // Reallocate the memory
 public:
 	void SetValue(CONST_PBYTE iValue, INT64 iBytesCount); // Set value
+	void SetValue(TBytes* iValue); // Set value
+	void SetValue(TBytes& iValue); // Set value
 	void SetSharedValue(PBYTE iValue, INT64 iBytesCount); // Set shared value
 	void SetRandomBytes(INT64 iBytesCount); // Set random bytes
 	void SetCount(INT64 iBytesCount); // Set count

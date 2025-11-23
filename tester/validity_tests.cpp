@@ -195,6 +195,10 @@ BOOL RunValidityTests_Environment(void) {
 		}, (CONST_PVOID)U64, BINARY_SEARCH_LAST_OCCURRENCE);
 	if (I64 != 3) return TEnvironment::ShowTestErrorMessage(-42, "BinarySearch");
 
+	strcpy(P1, "abcdefgh");
+	U64 = GenerateHash64(P1, FNC_STRLEN(P1), NULL, -1);
+	if (U64 != GenerateHash64(P1, -1, NULL, 0)) return TEnvironment::ShowTestErrorMessage(-43, "GenerateHash64");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true;
@@ -558,6 +562,10 @@ BOOL RunValidityTests_TString(void) {
 	S1.SetValue("abc"); S1.AppendChars('c', 3, false); if ((S1.Length != 6) || (FNC_STRCMP(S1.PChar(), "abcccc") != 0)) return TEnvironment::ShowTestErrorMessage(-1191, "TString::AppendChars");
 	S1.SetValue("abc"); S1.AppendChars('c', 3, true); if ((S1.Length != 3) || (FNC_STRCMP(S1.PChar(), "abc") != 0)) return TEnvironment::ShowTestErrorMessage(-1192, "TString::AppendChars");
 
+	S1.SetRandomBASE64Value(1024);
+	if (S1.GetHashCode() != TString::GenerateHashCode(S1.PChar(), -1)) return TEnvironment::ShowTestErrorMessage(-1193, "TString::GetHashCode / TString::GenerateHashCode");
+	if (S1.GetCaseHashCode() != TString::GenerateCaseHashCode(S1.PChar(), -1)) return TEnvironment::ShowTestErrorMessage(-1194, "TString::GetCaseHashCode / TString::GenerateCaseHashCode");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true; // All tests passed
@@ -731,6 +739,23 @@ BOOL RunValidityTests_TBytes(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TParamsList
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TParamsList(void) {
+
+	TParamsList B1, B2;
+	B1.SetParam_INT32("Param1", -1234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-4001, "TParamsList::SetParam / GetParam");
+	B1.SetParam_UINT32("Param2", 1234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 1234)) return TEnvironment::ShowTestErrorMessage(-4002, "TParamsList::SetParam / GetParam");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all validity tests
 //	Input:
 //			none
@@ -753,6 +778,10 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TBytes... ");
 	if (!RunValidityTests_TBytes()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TParamsList... ");
+	if (!RunValidityTests_TParamsList()) return false;
 	printf("OK.");
 
 	return true; // all tests passed

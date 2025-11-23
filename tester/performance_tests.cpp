@@ -846,6 +846,39 @@ void RunPerformanceTests_TList(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - TBytes
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TBytes(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TBytes B1;
+
+	// TBytes::GetHashCode
+#if 0
+	MaxIters = 50000;
+
+	B1.SetRandomBytes(10240);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (B1.GetHashCode() == 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TBytes::GetHashCode", Iters);
+#endif
+
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -856,5 +889,6 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_Environment();
 	RunPerformanceTests_TString();
 	RunPerformanceTests_TList();
+	RunPerformanceTests_TBytes();
 }
 //	................................................................................................
