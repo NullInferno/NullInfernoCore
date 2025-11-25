@@ -34,6 +34,7 @@ public:
 	void SetValue(DOUBLE iValue, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Set value
 	void SetSharedValue(PCHAR iValue, INT64 iLength = -1); // Set shared value
 	void SetRandomBASE64Value(INT64 iLength); // Set random BASE64 string value
+	void SetValue(CONST_PWCHAR iValue, INT64 iLength = -1, INT32 iCodePage = -1); // Set value
 public:
 	CONST_PCHAR PChar(void); // Get value
 	INT32 AsINT32(void); // Get value
@@ -41,6 +42,7 @@ public:
 	INT64 AsINT64(void); // Get value
 	UINT64 AsUINT64(void); // Get value
 	DOUBLE AsDOUBLE(void); // Get value
+	INT64 AsPWChar(PWCHAR oBuffer, INT64 iBufferLength, INT32 iCodePage = -1); // Get value as wide char string
 public:
 	INT32 Compare(CONST_PCHAR iValue, INT64 iStart = 0, INT64 iMaxLength = -1); // Compare with a value
 	INT32 Compare(TString* iValue, INT64 iStart = 0, INT64 iMaxLength = -1); // Compare with a value
@@ -48,6 +50,8 @@ public:
 	INT32 CaseCompare(CONST_PCHAR iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 	INT32 CaseCompare(TString* iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 	INT32 CaseCompare(TString& iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
+	BOOL IsEqual(CONST_PCHAR iValue, INT64 iLength = -1); // Check equality with a value
+	BOOL IsEmpty(void); // Check if string is empty
 public:
 	void AppendValue(CONST_PCHAR iValue, INT64 iLength = -1); // Append value to the end
 	void AppendValue(TString& iValue); // Append value to the end

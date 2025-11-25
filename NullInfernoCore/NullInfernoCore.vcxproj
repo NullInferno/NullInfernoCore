@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="NullInfernoCore.h" />
     <ClInclude Include="TBytes.h" />
+    <ClInclude Include="TDateTime.h" />
     <ClInclude Include="TEnvironment.h" />
     <ClInclude Include="TList.h" />
     <ClInclude Include="TParamsList.h" />
@@ -157,6 +158,7 @@
   <ItemGroup>
     <ClCompile Include="CommonFunctions.cpp" />
     <ClCompile Include="TBytes.cpp" />
+    <ClCompile Include="TDateTime.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
     <ClCompile Include="TList.cpp" />
     <ClCompile Include="TParamsList.cpp" />

@@ -566,6 +566,9 @@ BOOL RunValidityTests_TString(void) {
 	if (S1.GetHashCode() != TString::GenerateHashCode(S1.PChar(), -1)) return TEnvironment::ShowTestErrorMessage(-1193, "TString::GetHashCode / TString::GenerateHashCode");
 	if (S1.GetCaseHashCode() != TString::GenerateCaseHashCode(S1.PChar(), -1)) return TEnvironment::ShowTestErrorMessage(-1194, "TString::GetCaseHashCode / TString::GenerateCaseHashCode");
 
+	CONST_PWCHAR PW1 = L"abcdefghi";
+	S1.SetValue(PW1, -1, 0); if (!S1.IsEqual("abcdefghi")) return TEnvironment::ShowTestErrorMessage(-1195, "TString::SetValue");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true; // All tests passed
@@ -739,6 +742,91 @@ BOOL RunValidityTests_TBytes(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TDateTime
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TDateTime(void) {
+
+	DATETIME_COMPONENTS DC, DC2;
+
+	TString S1;
+	TDateTime DT1; TDateTime DT2;
+
+	PCHAR P1 = PCHAR_ALLOC(1024);
+	if (P1 == NULL) return TEnvironment::ShowTestErrorMessage(-4999, "TDateTime::Memory allocation failed");
+
+	DC.Year = 2024; DC.Month = 2; DC.Day = 28; DC.Hour = 23; DC.Minute = 59; DC.Second = 59; DC.Millisecond = 999;
+	DATETIME D1 = TDateTime::ComponentsToDATETIME(&DC);
+	if (D1 == DATETIME_EMPTY) return TEnvironment::ShowTestErrorMessage(-4001, "TDateTime::ComponentsToDATETIME / TDateTime::IsValidDATETIME");
+	if (!TDateTime::DATETIMEToComponents(D1, &DC2)) return TEnvironment::ShowTestErrorMessage(-4002, "TDateTime::ComponentsToDATETIME / TDateTime::IsValidDATETIME");
+	if ((DC2.Year != DC.Year) || (DC2.Month != DC.Month) || (DC2.Day != DC.Day) || (DC2.Hour != DC.Hour) || (DC2.Minute != DC.Minute) || (DC2.Second != DC.Second) || (DC2.Millisecond != DC.Millisecond)) return TEnvironment::ShowTestErrorMessage(-4003, "TDateTime::ComponentsToDATETIME / TDateTime::DATETIMEToComponents");
+
+	DT1.SetValue(2005, 2, 3, 0, 1, 2); 
+	DT1.FormatDateTime(&S1, "%d.%M.%y"); if (!S1.IsEqual("3.2.05")) return TEnvironment::ShowTestErrorMessage(-4004, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%d.%M.%yy"); if (!S1.IsEqual("3.2.2005")) return TEnvironment::ShowTestErrorMessage(-4005, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%d.%MM.%yy"); if (!S1.IsEqual("3.02.2005")) return TEnvironment::ShowTestErrorMessage(-4006, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy"); if (!S1.IsEqual("03.02.2005")) return TEnvironment::ShowTestErrorMessage(-4007, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %H:%m:%s"); if (!S1.IsEqual("03.02.2005 0:1:2")) return TEnvironment::ShowTestErrorMessage(-4009, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %HH:%m:%s"); if (!S1.IsEqual("03.02.2005 00:1:2")) return TEnvironment::ShowTestErrorMessage(-4010, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %HH:%mm:%s"); if (!S1.IsEqual("03.02.2005 00:01:2")) return TEnvironment::ShowTestErrorMessage(-4011, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %HH:%mm:%ss"); if (!S1.IsEqual("03.02.2005 00:01:02")) return TEnvironment::ShowTestErrorMessage(-4012, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %h:%mm:%ss %t"); if (!S1.IsEqual("03.02.2005 12:01:02 AM")) return TEnvironment::ShowTestErrorMessage(-4013, "TDateTime::FormatDateToString");
+	DT1.SetValue(2005, 2, 3, 13, 1, 2);
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %h:%mm:%ss %t"); if (!S1.IsEqual("03.02.2005 1:01:02 PM")) return TEnvironment::ShowTestErrorMessage(-4014, "TDateTime::FormatDateToString");
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %hh:%mm:%ss %t"); if (!S1.IsEqual("03.02.2005 01:01:02 PM")) return TEnvironment::ShowTestErrorMessage(-4015, "TDateTime::FormatDateToString");
+	DT1.SetValue(2005, 2, 3, 1, 1, 2);
+	DT1.FormatDateTime(&S1, "%dd.%MM.%yy %hh:%mm:%ss %t"); if (!S1.IsEqual("03.02.2005 01:01:02 AM")) return TEnvironment::ShowTestErrorMessage(-4016, "TDateTime::FormatDateToString");
+
+	FNC_STRCPY(P1, "31.12.2005 23:59:59");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %H:%m:%s")); if (!DT1.IsEqual(2005, 12, 31, 23, 59, 59)) return TEnvironment::ShowTestErrorMessage(-4018, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.11.2005 23:59:59");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %H:%m:%s")); if (DT1.IsValid()) return TEnvironment::ShowTestErrorMessage(-4019, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.12.2005 23:59:59");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %h:%m:%s")); if (DT1.IsValid()) return TEnvironment::ShowTestErrorMessage(-4020, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.12.2005 12:59:59");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %h:%m:%s")); if (!DT1.IsEqual(2005, 12, 31, 0, 59, 59)) return TEnvironment::ShowTestErrorMessage(-4021, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.12.2005 12:59:59 X");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %h:%m:%s %t")); if (DT1.IsValid()) return TEnvironment::ShowTestErrorMessage(-4022, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.12.2005 12:59:59 AM");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %h:%m:%s %t")); if (!DT1.IsEqual(2005, 12, 31, 0, 59, 59)) return TEnvironment::ShowTestErrorMessage(-4023, "TDateTime::ParseDateTime");
+	FNC_STRCPY(P1, "31.12.2005 12:59:59 pM");  DT1.SetValue(TDateTime::ParseDateTime(P1, "%d.%M.%y %h:%m:%s %t")); if (!DT1.IsEqual(2005, 12, 31, 12, 59, 59)) return TEnvironment::ShowTestErrorMessage(-4024, "TDateTime::ParseDateTime");
+
+	DT1.FormatDateTime(&S1, NULL); if (!S1.IsEmpty()) return TEnvironment::ShowTestErrorMessage(-4025, "TDateTime::FormatDateTime");
+
+	DT1.SetValue(2024, 2, 28, 23, 59, 59);
+	if (DT1.GetMillisecond() != 0) return TEnvironment::ShowTestErrorMessage(-4026, "TDateTime::GetMillisecond");
+	if (DT1.GetSecond() != 59) return TEnvironment::ShowTestErrorMessage(-4027, "TDateTime::GetSecond");
+	if (DT1.GetMinute() != 59) return TEnvironment::ShowTestErrorMessage(-4028, "TDateTime::GetMinute");
+	if (DT1.GetHour() != 23) return TEnvironment::ShowTestErrorMessage(-4029, "TDateTime::GetHour");
+	if (DT1.GetDay() != 28) return TEnvironment::ShowTestErrorMessage(-4030, "TDateTime::GetDay");
+	if (DT1.GetMonth() != 2) return TEnvironment::ShowTestErrorMessage(-4031, "TDateTime::GetMonth");
+	if (DT1.GetYear() != 2024) return TEnvironment::ShowTestErrorMessage(-4032, "TDateTime::GetYear");
+
+	DT1.AddMilliseconds(25); if ((DT1.GetMillisecond() != 25) || (!DT1.IsEqual(2024, 2, 28, 23, 59, 59))) return TEnvironment::ShowTestErrorMessage(-4033, "TDateTime::AddMilliseconds");
+	DT1.AddMilliseconds(-50); if ((DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 28, 23, 59, 58))) return TEnvironment::ShowTestErrorMessage(-4034, "TDateTime::AddMilliseconds");
+	DT1.AddSeconds(25); if ((DT1.GetSecond() != 23) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 29, 0, 0, 23))) return TEnvironment::ShowTestErrorMessage(-4035, "TDateTime::AddSeconds");
+	DT1.AddSeconds(-125); if ((DT1.GetSecond() != 18) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 28, 23, 58, 18))) return TEnvironment::ShowTestErrorMessage(-4036, "TDateTime::AddSeconds");
+	DT1.AddMinutes(70); if ((DT1.GetMinute() != 8) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 29, 1, 8, 18))) return TEnvironment::ShowTestErrorMessage(-4037, "TDateTime::AddMinutes");
+	DT1.AddMinutes(-100); if ((DT1.GetMinute() != 28) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 28, 23, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4038, "TDateTime::AddMinutes");
+	DT1.AddHours(50); if ((DT1.GetHour() != 1) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 3, 2, 1, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4039, "TDateTime::AddHours");
+	DT1.AddHours(-90); if ((DT1.GetHour() != 7) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 27, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4040, "TDateTime::AddHours");
+	DT1.AddDays(31); if ((DT1.GetDay() != 29) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 3, 29, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4041, "TDateTime::AddDays");
+	DT1.AddDays(-44); if ((DT1.GetDay() != 14) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2024, 2, 14, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4042, "TDateTime::AddDays");
+	DT1.AddMonths(51); if ((DT1.GetMonth() != 5) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2028, 5, 14, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4043, "TDateTime::AddMonths");
+	DT1.AddDays(17); if ((DT1.GetDay() != 31) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2028, 5, 31, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4044, "TDateTime::AddDays");
+	DT1.AddMonths(49); if ((DT1.GetMonth() != 7) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2032, 7, 1, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4045, "TDateTime::AddMonths");
+	DT1.AddMonths(-33); if ((DT1.GetMonth() != 10) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2029, 10, 1, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4046, "TDateTime::AddMonths");
+	DT1.AddYears(-33); if ((DT1.GetYear() != 1996) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(1996, 10, 1, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4046, "TDateTime::AddYears");
+	DT1.AddYears(100); if ((DT1.GetYear() != 2096) || (DT1.GetMillisecond() != 975) || (!DT1.IsEqual(2096, 10, 1, 7, 28, 18))) return TEnvironment::ShowTestErrorMessage(-4047, "TDateTime::AddYears");
+	DT1.AddYears(-3000); if (DT1.IsValid() || (DT1.GetYear() != -1)) return TEnvironment::ShowTestErrorMessage(-4048, "TDateTime::AddYears");
+
+	DT1.SetValue(2004, 2, 29, 12, 11, 10, 112); DT2.SetValue(2005, 2, 11, 12, 44, 50, 777);
+	DT1.AddValue(DT2); TDateTime::DATETIMEToComponents(DT1.GetValue(), &DC);
+	if (!DT1.IsEqual(2039, 4, 12, 0, 56, 0, 889)) return TEnvironment::ShowTestErrorMessage(-4049, "TDateTime::AddValue");
+
+	PCHAR_FREE(P1);
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run validity tests for TParamsList
 //	Input:
 //			none
@@ -747,9 +835,25 @@ BOOL RunValidityTests_TBytes(void) {
 //	................................................................................................
 BOOL RunValidityTests_TParamsList(void) {
 
+	TString S1; TDateTime DT1, DT2;
+
 	TParamsList B1, B2;
-	B1.SetParam_INT32("Param1", -1234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-4001, "TParamsList::SetParam / GetParam");
-	B1.SetParam_UINT32("Param2", 1234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 1234)) return TEnvironment::ShowTestErrorMessage(-4002, "TParamsList::SetParam / GetParam");
+	B1.SetParam_INT32("Param1", -1234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-5001, "TParamsList::SetParam / GetParam");
+	B1.SetParam_INT32("Param1", -4234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -4234)) return TEnvironment::ShowTestErrorMessage(-5002, "TParamsList::SetParam / GetParam");
+	B1.SetParam_UINT32("Param2", 1234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 1234)) return TEnvironment::ShowTestErrorMessage(-5003, "TParamsList::SetParam / GetParam");
+	B1.SetParam_UINT32("Param2", 4234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 4234)) return TEnvironment::ShowTestErrorMessage(-5004, "TParamsList::SetParam / GetParam");
+	B1.SetParam_INT64("Param3", -123456); if ((B1.Count() != 3) || (B1.GetParam_INT64("paraM3", 0) != -123456)) return TEnvironment::ShowTestErrorMessage(-5005, "TParamsList::SetParam / GetParam");
+	B1.SetParam_INT64("Param3", -423456); if ((B1.Count() != 3) || (B1.GetParam_INT64("paraM3", 0) != -423456)) return TEnvironment::ShowTestErrorMessage(-5006, "TParamsList::SetParam / GetParam");
+	B1.SetParam_UINT64("Param4", 123456); if ((B1.Count() != 4) || (B1.GetParam_UINT64("paraM4", 0) != 123456)) return TEnvironment::ShowTestErrorMessage(-5007, "TParamsList::SetParam / GetParam");
+	B1.SetParam_UINT64("Param4", 423456); if ((B1.Count() != 4) || (B1.GetParam_UINT64("paraM4", 0) != 423456)) return TEnvironment::ShowTestErrorMessage(-5008, "TParamsList::SetParam / GetParam");
+	B1.SetParam_DOUBLE("Param5", -1234.22); if ((B1.Count() != 5) || (B1.GetParam_DOUBLE("paraM5", 0) != -1234.22)) return TEnvironment::ShowTestErrorMessage(-5009, "TParamsList::SetParam / GetParam");
+	B1.SetParam_DOUBLE("Param5", -4234.22); if ((B1.Count() != 5) || (B1.GetParam_DOUBLE("paraM5", 0) != -4234.22)) return TEnvironment::ShowTestErrorMessage(-5010, "TParamsList::SetParam / GetParam");
+	B1.SetParam_BOOL("Param6", true); if ((B1.Count() != 6) || (B1.GetParam_BOOL("paraM6", false) != true)) return TEnvironment::ShowTestErrorMessage(-5011, "TParamsList::SetParam / GetParam");
+	B1.SetParam_BOOL("Param6", false); if ((B1.Count() != 6) || (B1.GetParam_BOOL("paraM6", true) != false)) return TEnvironment::ShowTestErrorMessage(-5012, "TParamsList::SetParam / GetParam");
+	DT1.SetValue(2025, 11, 11, 1, 1, 1); B1.SetParam_DATETIME("Param7", &DT1); B1.GetParam_DATETIME("paraM7", &DT2, DATETIME_EMPTY); if ((B1.Count() != 7) || (!DT2.IsEqual(2025, 11, 11, 1, 1, 1))) return TEnvironment::ShowTestErrorMessage(-5013, "TParamsList::SetParam / GetParam");
+	B1.SetParam_DATETIME("Param7", 200); if ((B1.Count() != 7) || (B1.GetParam_DATETIME("paraM7", DATETIME_EMPTY) != 200)) return TEnvironment::ShowTestErrorMessage(-5014, "TParamsList::SetParam / GetParam");
+	B1.SetParam_STRING("Param8", "abcd"); B1.GetParam_STRING("paraM8", &S1, ""); if ((B1.Count() != 8) || (!S1.IsEqual("abcd"))) return TEnvironment::ShowTestErrorMessage(-5015, "TParamsList::SetParam / GetParam");
+	B1.SetParam_STRING("Param8", "abcde"); B1.GetParam_STRING("paraM8", &S1, ""); if ((B1.Count() != 8) || (!S1.IsEqual("abcde"))) return TEnvironment::ShowTestErrorMessage(-5016, "TParamsList::SetParam / GetParam");
 
 	return true; // all tests passed
 }
@@ -778,6 +882,10 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TBytes... ");
 	if (!RunValidityTests_TBytes()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TDateTime... ");
+	if (!RunValidityTests_TDateTime()) return false;
 	printf("OK.");
 
 	printf("\n\tRunning tests - TParamsList... ");

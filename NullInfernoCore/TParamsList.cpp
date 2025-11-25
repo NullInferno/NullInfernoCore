@@ -343,6 +343,18 @@ void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Set DATETIME parameter
+//	Input:
+// 			iName - parameter name
+// 			iValue - parameter value
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue) {
+	SetParam_DATETIME(iName, iValue == NULL ? DATETIME_EMPTY : iValue->GetValue()); // Set the value
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Set STRING parameter
 //	Input:
 // 			iName - parameter name
@@ -557,6 +569,19 @@ DATETIME TParamsList::GetParam_DATETIME(CONST_PCHAR iName, DATETIME iDefaultValu
 		return PE->Type == PTYPE_DATETIME ? PE->Data.ValueAsDATETIME : iDefaultValue; // Return the value or default value
 	}
 	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get DATETIME parameter
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+void TParamsList::GetParam_DATETIME(CONST_PCHAR iName, TDateTime* oResult, DATETIME iDefaultValue) {
+	if (oResult == NULL) return; // Invalid output pointer
+	oResult->SetValue(GetParam_DATETIME(iName, iDefaultValue)); // Get the value
 }
 //	...............................................................................................
 //	...............................................................................................

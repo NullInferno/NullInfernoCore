@@ -531,6 +531,60 @@ void TString::SetRandomBASE64Value(INT64 iLength) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Set shared value
+//	Input:
+// 			iValue - value to set
+// 			iLength - length of the value or -1 for null-terminated string
+// 			iCodePage - code page of the input value for conversion or -1 for user default
+//	Output:
+//			none
+//	...............................................................................................
+void TString::SetValue(CONST_PWCHAR iValue, INT64 iLength, INT32 iCodePage) {
+	if ((iValue == NULL) || (*iValue == 0)) { // Empty input?
+		SetLength(0); // Set length to zero
+		return;
+	}
+
+#ifdef WINDOWS_SYSTEM
+	INT64 InLen = (iLength < 0) ? (INT64)FNC_WCSLEN(iValue) : iLength; // Determine input length
+
+	INT32 L = WideCharToMultiByte(iCodePage == -1 ? CP_ACP : iCodePage, 0, iValue, (iLength < 0) ? -1 : (INT32)InLen, NULL, 0, NULL, NULL); // Determine required length
+	if (L == 0) { // Conversion failed?
+		SetLength(0); // Set length to zero
+		return;
+	}
+
+	if (!Reallocate(L, false)) { // Reallocate memory
+		SetLength(0); // Set length to zero
+		return;
+	}
+
+	if (WideCharToMultiByte(iCodePage == -1 ? CP_ACP : iCodePage, 0, iValue, (INT32)InLen, Value, L, NULL, NULL) != (INT32)InLen) { // Perform conversion
+		SetLength(0); // Set length to zero
+		return;
+	}
+	Value[Length = (L - 1)] = 0; // Terminate the string and set length
+#else
+	UINT32 L = wcstombs(NULL, iValue, 0);
+	if (L == (UINT32)-1) { // Conversion failed?
+		SetLength(0); // Set length to zero
+		return;
+	}
+
+	if (!Reallocate(L, false)) { // Reallocate memory
+		SetLength(0); // Set length to zero
+		return;
+	}
+
+	if (wcstombs(Value, iValue, L + 1) == (UINT32)-1) { // Perform conversion
+		SetLength(0); // Set length to zero
+		return;
+	}
+	Value[Length = L] = 0; // Terminate the string and set length
+#endif
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Get value
 //	Input:
 // 			none
@@ -594,6 +648,44 @@ UINT64 TString::AsUINT64(void) {
 //	...............................................................................................
 DOUBLE TString::AsDOUBLE(void) {
 	return Length == 0 ? 0 : StrToDOUBLE((CONST_PCHAR)Value, 0.0, ' ');
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get value as wide char string
+//	Input:
+// 			oBuffer - output buffer
+// 			iBufferLength - length of the output buffer
+// 			iCodePage - code page of the input value for conversion or -1 for user default
+//	Output:
+//			number of characters written or -1 on error, -2 if output buffer too small
+//	...............................................................................................
+INT64 TString::AsPWChar(PWCHAR oBuffer, INT64 iBufferLength, INT32 iCodePage) {
+	if ((oBuffer == NULL) || (iBufferLength <= 0)) return -1; // Empty string?
+
+	if (Length == 0) { // Empty string?
+		*oBuffer = 0; // Terminate the string
+		return 0;
+	}
+
+#ifdef WINDOWS_SYSTEM
+	INT32 L = MultiByteToWideChar(iCodePage == -1 ? CP_ACP : iCodePage, 0, Value, (INT32)Length, NULL, 0); // Determine required length
+	if (L == 0) return -1; // Conversion failed?
+
+	if (L >= iBufferLength) return -2; // Output buffer too small?
+
+	L = MultiByteToWideChar(iCodePage == -1 ? CP_ACP : iCodePage, 0, Value, (INT32)Length, oBuffer, (INT32)iBufferLength);
+	oBuffer[L] = 0; // Terminate the string
+	return L; // Return number of characters written
+#else
+	size_t L = mbstowcs(NULL, Value, 0);
+	if (L == (size_t)-1) return -1; // Conversion failed?
+
+	if ((INT64)L > iBufferLength) return -2; // Output buffer too small?
+
+	mbstowcs(oBuffer, Value, L + 1);
+	oBuffer[L] = 0; // Terminate the string
+	return (INT64)L; // Return number of characters written
+#endif
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -754,6 +846,29 @@ INT32 TString::CaseCompare(TString* iValue, INT64 iStart, INT64 iMaxLength, INT3
 //	...............................................................................................
 INT32 TString::CaseCompare(TString& iValue, INT64 iStart, INT64 iMaxLength, INT32 iCodePage) {
 	return CaseCompare((CONST_PCHAR)iValue.Value, iMaxLength, iCodePage); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Check equality with a value
+//	Input:
+// 			iValue - value to compare with
+// 			iLength - length of the value or -1 for null-terminated string
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TString::IsEqual(CONST_PCHAR iValue, INT64 iLength) {
+	return Compare(iValue, 0, iLength) == 0; // Call the compare method
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Check if string is empty
+//	Input:
+// 			none
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TString::IsEmpty(void) {
+	return Length == 0;
 }
 //	...............................................................................................
 //	...............................................................................................

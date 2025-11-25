@@ -1,6 +1,10 @@
 #include "NullInfernoCore.h"
 #include "TEnvironment.h"
 
+extern PCHAR DefaultDateTimeOutputFormatString;
+extern PCHAR DefaultDateTimeInputFormatString;
+
+
 //	................................................................................................
 //  Initialize environment
 //	Input:
@@ -9,6 +13,11 @@
 // 			true / false
 //	................................................................................................
 BOOL TEnvironment::InitEnvironment(void) {
+	DefaultDateTimeInputFormatString = NULL; // Initialize global variables
+	DefaultDateTimeOutputFormatString = NULL;
+
+	setlocale(LC_ALL, ""); // Set locale to user default
+
 	srand((UINT32)time(NULL)); // Seed random number generator
 	return true;
 }
@@ -21,6 +30,9 @@ BOOL TEnvironment::InitEnvironment(void) {
 // 			none
 //	................................................................................................
 void TEnvironment::CloseEnvironment(void) {
+	// Free global variables
+	if (DefaultDateTimeInputFormatString != NULL) MEMORY_FREE(DefaultDateTimeInputFormatString);
+	if (DefaultDateTimeOutputFormatString != NULL) MEMORY_FREE(DefaultDateTimeOutputFormatString);
 }
 //	................................................................................................
 //	................................................................................................

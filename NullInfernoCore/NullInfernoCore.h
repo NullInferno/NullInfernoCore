@@ -46,6 +46,7 @@
 #define DATETIME unsigned __int64
 #define CHAR char
 #define BYTE unsigned char
+#define WCHAR wchar_t
 
 #define PINT8 char*
 #define PINT16 short*
@@ -61,6 +62,7 @@
 #define PDATETIME unsigned __int64*
 #define PCHAR char*
 #define PBYTE unsigned char*
+#define PWCHAR wchar_t*
 #define PVOID void*
 
 #define CONST_PINT8 const char*
@@ -77,6 +79,7 @@
 #define CONST_PDATETIME const unsigned __int64*
 #define CONST_PCHAR const char*
 #define CONST_PBYTE const unsigned char*
+#define CONST_PWCHAR const wchar_t*
 #define CONST_PVOID const void*
 
 #endif
@@ -97,6 +100,7 @@
 #define DATETIME unsigned long long int
 #define CHAR char
 #define BYTE unsigned char
+#define WCHAR wchar_t
 
 #define PINT8 char*
 #define PINT16 short*
@@ -112,6 +116,7 @@
 #define PDATETIME unsigned long long int*
 #define PCHAR char*
 #define PBYTE unsigned char*
+#define PWCHAR wchar_t*
 #define PVOID void*
 
 #define CONST_PINT8 const char*
@@ -128,6 +133,7 @@
 #define CONST_PDATETIME const unsigned long long int*
 #define CONST_PCHAR const char*
 #define CONST_PBYTE const unsigned char*
+#define CONST_PWCHAR const wchar_t*
 #define CONST_PVOID const void*
 
 #endif
@@ -145,7 +151,7 @@ typedef INT32(*TBinarySearchCompareFunction)(CONST_PVOID iData, CONST_PVOID iUse
 #define MAX_INT64 (INT64)9223372036854775807LL
 #define MIN_INT64 (INT64)-9223372036854775808LL
 #define MAX_UINT64 (UINT64)18446744073709551615ULL
-#define DATETTIME_EMPTY (DATETIME)0xffffffffffffffffull
+#define DATETIME_EMPTY (DATETIME)0xffffffffffffffffull
 
 #define BINARY_SEARCH_ANY_OCCURRENCE 0
 #define BINARY_SEARCH_FIRST_OCCURRENCE 1
@@ -159,6 +165,7 @@ class TString;
 class TList;
 class TBytes;
 class TParamsList;
+class TDateTime;
 
 // Include other headers
 
@@ -168,6 +175,7 @@ class TParamsList;
 #include "TList.h"
 #include "TBytes.h"
 #include "TParamsList.h"
+#include "TDateTime.h"
 
 // Macros
 
@@ -213,6 +221,7 @@ class TParamsList;
 #define FNC_STRRCHR strrchr
 #define FNC_MEMSET memset
 #define FNC_MEMCMP memcmp
+#define FNC_WCSLEN wcslen
 
 // Miscellaneous functions
 

@@ -879,6 +879,85 @@ void RunPerformanceTests_TBytes(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - TDateTime
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TDateTime(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	[[maybe_unused]] TDateTime DT1;
+	[[maybe_unused]] DATETIME_COMPONENTS DC;
+	[[maybe_unused]] TString S1;
+	[[maybe_unused]] CHAR P1[64];
+
+	// TDateTime::DATETIMEToComponents and TDateTime::ComponentsToDATETIME
+#if 0
+	MaxIters = 10000000;
+
+	DATETIME D = TDateTime::GetCurrentDateTime();
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		TDateTime::DATETIMEToComponents(D, &DC);
+		if (TDateTime::ComponentsToDATETIME(&DC) != D) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TDateTime::DATETIMEToComponents and TDateTime::ComponentsToDATETIME", Iters);
+#endif
+	// TDateTime::FormatDateToString (CustomSystemFormat)
+#if 0
+	MaxIters = 1000000;
+
+	DT1.SetCurrentDateTime();
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		DT1.FormatDateTime(&S1, "dd.MM.yyyy HH:mm:ss");
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TDateTime::FormatDateToString (CustomSystemFormat)", Iters);
+#endif
+	// TDateTime::FormatDateToString (CustomSystemFormat) ->PCHAR
+#if 0
+	MaxIters = 1000000;
+
+	DT1.SetCurrentDateTime();
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		DT1.FormatDateTimeToString(P1, 16, CustomSystemFormat, "dd.MM.yyyy");
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TDateTime::FormatDateToString (CustomSystemFormat) ->PCHAR", Iters);
+#endif
+	// TDateTime::ParseDateTime
+#if 0
+	MaxIters = 10000000;
+
+	DT1.SetCurrentDateTime();
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (!DT1.SetValue("31.12.2023 23:59:59", "%d.%M.%y %H:%m:%s")) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TDateTime::ParseDateTime", Iters);
+#endif
+
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -890,5 +969,6 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_TString();
 	RunPerformanceTests_TList();
 	RunPerformanceTests_TBytes();
+	RunPerformanceTests_TDateTime();
 }
 //	................................................................................................

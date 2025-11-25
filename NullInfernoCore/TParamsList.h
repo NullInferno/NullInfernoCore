@@ -7,9 +7,9 @@ enum TParamType {
 	PTYPE_INT64 = 3,
 	PTYPE_UINT64 = 4,
 	PTYPE_DOUBLE = 5,
-	PTYPE_STRING = 6,
-	PTYPE_BOOL = 7,
-	PTYPE_DATETIME = 8,
+	PTYPE_BOOL = 6,
+	PTYPE_DATETIME = 7,
+	PTYPE_STRING = 8,
 	PTYPE_BYTES = 9
 };
 
@@ -42,6 +42,7 @@ public:
 	void SetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iValue); // Set DOUBLE parameter
 	void SetParam_BOOL(CONST_PCHAR iName, BOOL iValue); // Set BOOL parameter
 	void SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue); // Set DATETIME parameter
+	void SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue); // Set DATETIME parameter
 	void SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue); // Set STRING parameter
 	void SetParam_STRING(CONST_PCHAR iName, TString* iValue); // Set STRING parameter
 	void SetParam_BYTES(CONST_PCHAR iName, CONST_PBYTE iValue, INT64 iLength); // Set BYTES parameter
@@ -53,7 +54,8 @@ public:
 	UINT64 GetParam_UINT64(CONST_PCHAR iName, UINT64 iDefaultValue = 0); // Get UINT64 parameter
 	DOUBLE GetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iDefaultValue = 0); // Get DOUBLE parameter
 	BOOL GetParam_BOOL(CONST_PCHAR iName, BOOL iDefaultValue = false); // Get BOOL parameter
-	DATETIME GetParam_DATETIME(CONST_PCHAR iName, DATETIME iDefaultValue = DATETTIME_EMPTY); // Get DATETIME parameter
+	DATETIME GetParam_DATETIME(CONST_PCHAR iName, DATETIME iDefaultValue = DATETIME_EMPTY); // Get DATETIME parameter
+	void GetParam_DATETIME(CONST_PCHAR iName, TDateTime* oResult, DATETIME iDefaultValue = DATETIME_EMPTY); // Get DATETIME parameter
 	void GetParam_STRING(CONST_PCHAR iName, TString *oResult, CONST_PCHAR iDefaultValue = ""); // Get STRING parameter
 	void GetParam_BYTES(CONST_PCHAR iName, TBytes* oResult); // Get BYTES parameter
 };

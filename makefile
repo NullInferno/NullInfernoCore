@@ -18,6 +18,7 @@ SRCS_LIB = TEnvironment.cpp \
 			TList.cpp \
 			TBytes.cpp \
 			TParamsList.cpp \
+			TDateTime.cpp
 
 OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
 OBJDIR_TESTER = /home/nullinferno/projects/NullInfernoCore/objs
