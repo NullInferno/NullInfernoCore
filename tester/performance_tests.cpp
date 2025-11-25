@@ -958,6 +958,113 @@ void RunPerformanceTests_TDateTime(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - Stream
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_Streams(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TMemoryStream MS1;
+	TBytes B1; B1.Reallocate(8192);
+	TDateTime DT1; 
+	TString S1;
+	BYTE BUF[64];
+
+	// TMemoryStream::Write
+#if 1
+	MaxIters = 10000000;
+
+	UINT64 D = 1;
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (MS1.Write(&D, 8) != 8) break;
+		D++;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TMemoryStream::Write", Iters);
+#endif
+
+	// TBinaryWriter::Write
+#if 1
+	MaxIters = 1000000;
+
+	DT1.SetCurrentDateTime();
+	S1.SetValue("abcdefgh"); B1.SetValue((PBYTE)S1.PChar(), S1.Length);
+
+	MS1.Release();
+	TBinaryWriter* BW = new TBinaryWriter(&MS1, true);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		UINT64 U = Iters;
+		MS1.Rewind();
+		if (BW->WriteINT8((INT8)U) == false) break;
+		if (BW->WriteUINT8((UINT8)U) == false) break;
+		if (BW->WriteINT16((INT16)U) == false) break;
+		if (BW->WriteUINT16((UINT16)U) == false) break;
+		if (BW->WriteINT32((INT32)U) == false) break;
+		if (BW->WriteUINT32((UINT32)U) == false) break;
+		if (BW->WriteINT64((INT64)U) == false) break;
+		if (BW->WriteUINT64((UINT64)U) == false) break;
+		if (BW->WriteFLOAT((FLOAT)U) == false) break;
+		if (BW->WriteDOUBLE((DOUBLE)U) == false) break;
+		if (BW->WriteBOOL(U==1) == false) break;
+		if (BW->WriteDATETIME((DATETIME)U) == false) break;
+		if (BW->WriteDATETIME(&DT1) == false) break;
+		if (BW->WriteSTRING(&S1) == false) break;
+		if (BW->WriteBYTES(&B1) == false) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TBinaryWriter::Write", Iters);
+	delete BW;
+
+#endif
+	// TBinaryReader::Read
+#if 1
+	MaxIters = 1000000;
+
+	DT1.SetCurrentDateTime();
+	S1.SetValue("abcdefgh"); B1.SetValue((PBYTE)S1.PChar(), S1.Length);
+
+	TBinaryReader* BR = new TBinaryReader(&MS1, true);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		MS1.Rewind();
+		if (BR->ReadINT8((PINT8)BUF) == false) break;
+		if (BR->ReadUINT8((PUINT8)BUF) == false) break;
+		if (BR->ReadINT16((PINT16)BUF) == false) break;
+		if (BR->ReadUINT16((PUINT16)BUF) == false) break;
+		if (BR->ReadINT32((PINT32)BUF) == false) break;
+		if (BR->ReadUINT32((PUINT32)BUF) == false) break;
+		if (BR->ReadINT64((PINT64)BUF) == false) break;
+		if (BR->ReadUINT64((PUINT64)BUF) == false) break;
+		if (BR->ReadFLOAT((PFLOAT)BUF) == false) break;
+		if (BR->ReadDOUBLE((PDOUBLE)BUF) == false) break;
+		if (BR->ReadBOOL((PBOOL)BUF) == false) break;
+		if (BR->ReadDATETIME((PDATETIME)BUF) == false) break;
+		if (BR->ReadDATETIME(&DT1) == false) break;
+		if (BR->ReadSTRING(&S1) == false) break;
+		if (BR->ReadBYTES(&B1) == false) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TBinaryReader::Read", Iters);
+	delete BR;
+#endif
+
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -970,5 +1077,6 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_TList();
 	RunPerformanceTests_TBytes();
 	RunPerformanceTests_TDateTime();
+	RunPerformanceTests_Streams();
 }
 //	................................................................................................

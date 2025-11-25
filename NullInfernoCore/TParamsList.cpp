@@ -14,6 +14,7 @@ typedef struct {
 		DATETIME ValueAsDATETIME;
 		TString* ValueAsSTRING;
 		TBytes* ValueAsBYTES;
+		TParamsList* ValueAsPARAMSLIST;
 	} Data;
 } PARAM_ENTRY, * PPARAM_ENTRY;
 
@@ -96,6 +97,12 @@ void TParamsList::ClearParamEntry(CONST_PVOID iParamEntry) {
 			PE->Data.ValueAsBYTES = NULL;
 		}
 	}
+	else if (PE->Type == PTYPE_PARAMSLIST) { // Bytes parameter?
+		if (PE->Data.ValueAsPARAMSLIST != NULL) {
+			delete PE->Data.ValueAsPARAMSLIST; // Delete the bytes
+			PE->Data.ValueAsPARAMSLIST = NULL;
+		}
+	}
 	PE->Type = PTYPE_NONE; // Reset the type
 }
 //	...............................................................................................
@@ -108,6 +115,18 @@ void TParamsList::ClearParamEntry(CONST_PVOID iParamEntry) {
 //	...............................................................................................
 TParamsList::TParamsList(void) {
 	FParams = NULL; FCount = FCapacity = 0; // Initialize members
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Constructor
+//	Input:
+// 			iSource - source parameters list
+//	Output:
+//			none
+//	...............................................................................................
+TParamsList::TParamsList(TParamsList* iSource) {
+	FParams = NULL; FCount = FCapacity = 0; // Initialize members
+	CreateCopy(iSource); // Create a copy of the source parameters list
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -147,6 +166,42 @@ void TParamsList::Clear(void) {
 		ClearParamEntry(PE);
 	}
 	FCount = 0; // Reset the count
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Create a copy of another parameters list
+//	Input:
+// 			iSource - source parameters list
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::CreateCopy(TParamsList* iSource) {
+	if (iSource == NULL) Clear(); // Empty source?
+	else {
+		TBytes Bytes;
+		iSource->Serialize(&Bytes); // Serialize source parameters list
+		Deserialize(&Bytes); // Deserialize into this parameters list
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Serialize parameters to bytes
+//	Input:
+// 			oBytes - output bytes
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::Serialize(TBytes* oBytes) {
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Deserialize parameters from bytes
+//	Input:
+// 			iBytes - input bytes
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::Deserialize(TBytes* iBytes) {
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -460,6 +515,32 @@ void TParamsList::SetParam_BYTES(CONST_PCHAR iName, TBytes* iValue) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Set PARAMSLIST parameter
+//	Input:
+// 			iName - parameter name
+// 			iValue - parameter value
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		if (PE->Type == PTYPE_PARAMSLIST) { // Same type?
+			PE->Data.ValueAsPARAMSLIST->CreateCopy(iValue); // Create a copy of the value
+		}
+		else { // Different type?
+			ClearParamEntry(PE); // Clear the existing entry
+			PE->Type = PTYPE_BYTES; // Set new type
+			PE->Data.ValueAsPARAMSLIST = new TParamsList(iValue); // Set the value
+		}
+	}
+	else {
+		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_BYTES); // Add new parameter entry
+		if (PE != NULL) PE->Data.ValueAsPARAMSLIST = new TParamsList(iValue); // Set the value
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Get INT32 parameter
 //	Input:
 // 			iName - parameter name
@@ -618,5 +699,22 @@ void TParamsList::GetParam_BYTES(CONST_PCHAR iName, TBytes* oResult) {
 		else oResult->SetCount(0); // Different type, return empty bytes
 	}
 	else oResult->SetCount(0); // Not found, return empty bytes
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get PARAMSLIST parameter
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+void TParamsList::GetParam_ParamsList(CONST_PCHAR iName, TParamsList* oResult) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		if (PE->Type == PTYPE_PARAMSLIST) oResult->CreateCopy(PE->Data.ValueAsPARAMSLIST); // Return the stored value
+		else oResult->Clear(); // Different type, return empty bytes
+	}
+	else oResult->Clear(); // Not found, return empty bytes
 }
 //	...............................................................................................

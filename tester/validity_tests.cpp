@@ -835,26 +835,155 @@ BOOL RunValidityTests_TDateTime(void) {
 //	................................................................................................
 BOOL RunValidityTests_TParamsList(void) {
 
-	TString S1; TDateTime DT1, DT2;
+	TString S1; 
+	TDateTime DT1, DT2;
+	TBytes B1, B2;
 
-	TParamsList B1, B2;
-	B1.SetParam_INT32("Param1", -1234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-5001, "TParamsList::SetParam / GetParam");
-	B1.SetParam_INT32("Param1", -4234); if ((B1.Count() != 1) || (B1.GetParam_INT32("paraM1", 0) != -4234)) return TEnvironment::ShowTestErrorMessage(-5002, "TParamsList::SetParam / GetParam");
-	B1.SetParam_UINT32("Param2", 1234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 1234)) return TEnvironment::ShowTestErrorMessage(-5003, "TParamsList::SetParam / GetParam");
-	B1.SetParam_UINT32("Param2", 4234); if ((B1.Count() != 2) || (B1.GetParam_UINT32("paraM2", 0) != 4234)) return TEnvironment::ShowTestErrorMessage(-5004, "TParamsList::SetParam / GetParam");
-	B1.SetParam_INT64("Param3", -123456); if ((B1.Count() != 3) || (B1.GetParam_INT64("paraM3", 0) != -123456)) return TEnvironment::ShowTestErrorMessage(-5005, "TParamsList::SetParam / GetParam");
-	B1.SetParam_INT64("Param3", -423456); if ((B1.Count() != 3) || (B1.GetParam_INT64("paraM3", 0) != -423456)) return TEnvironment::ShowTestErrorMessage(-5006, "TParamsList::SetParam / GetParam");
-	B1.SetParam_UINT64("Param4", 123456); if ((B1.Count() != 4) || (B1.GetParam_UINT64("paraM4", 0) != 123456)) return TEnvironment::ShowTestErrorMessage(-5007, "TParamsList::SetParam / GetParam");
-	B1.SetParam_UINT64("Param4", 423456); if ((B1.Count() != 4) || (B1.GetParam_UINT64("paraM4", 0) != 423456)) return TEnvironment::ShowTestErrorMessage(-5008, "TParamsList::SetParam / GetParam");
-	B1.SetParam_DOUBLE("Param5", -1234.22); if ((B1.Count() != 5) || (B1.GetParam_DOUBLE("paraM5", 0) != -1234.22)) return TEnvironment::ShowTestErrorMessage(-5009, "TParamsList::SetParam / GetParam");
-	B1.SetParam_DOUBLE("Param5", -4234.22); if ((B1.Count() != 5) || (B1.GetParam_DOUBLE("paraM5", 0) != -4234.22)) return TEnvironment::ShowTestErrorMessage(-5010, "TParamsList::SetParam / GetParam");
-	B1.SetParam_BOOL("Param6", true); if ((B1.Count() != 6) || (B1.GetParam_BOOL("paraM6", false) != true)) return TEnvironment::ShowTestErrorMessage(-5011, "TParamsList::SetParam / GetParam");
-	B1.SetParam_BOOL("Param6", false); if ((B1.Count() != 6) || (B1.GetParam_BOOL("paraM6", true) != false)) return TEnvironment::ShowTestErrorMessage(-5012, "TParamsList::SetParam / GetParam");
-	DT1.SetValue(2025, 11, 11, 1, 1, 1); B1.SetParam_DATETIME("Param7", &DT1); B1.GetParam_DATETIME("paraM7", &DT2, DATETIME_EMPTY); if ((B1.Count() != 7) || (!DT2.IsEqual(2025, 11, 11, 1, 1, 1))) return TEnvironment::ShowTestErrorMessage(-5013, "TParamsList::SetParam / GetParam");
-	B1.SetParam_DATETIME("Param7", 200); if ((B1.Count() != 7) || (B1.GetParam_DATETIME("paraM7", DATETIME_EMPTY) != 200)) return TEnvironment::ShowTestErrorMessage(-5014, "TParamsList::SetParam / GetParam");
-	B1.SetParam_STRING("Param8", "abcd"); B1.GetParam_STRING("paraM8", &S1, ""); if ((B1.Count() != 8) || (!S1.IsEqual("abcd"))) return TEnvironment::ShowTestErrorMessage(-5015, "TParamsList::SetParam / GetParam");
-	B1.SetParam_STRING("Param8", "abcde"); B1.GetParam_STRING("paraM8", &S1, ""); if ((B1.Count() != 8) || (!S1.IsEqual("abcde"))) return TEnvironment::ShowTestErrorMessage(-5016, "TParamsList::SetParam / GetParam");
+	TParamsList P1, P2;
 
+	P1.SetParam_INT32("Param1", -1234); if ((P1.Count() != 1) || (P1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-5001, "TParamsList::SetParam / GetParam");
+	P1.SetParam_INT32("Param1", -4234); if ((P1.Count() != 1) || (P1.GetParam_INT32("paraM1", 0) != -4234)) return TEnvironment::ShowTestErrorMessage(-5002, "TParamsList::SetParam / GetParam");
+	P1.SetParam_UINT32("Param2", 1234); if ((P1.Count() != 2) || (P1.GetParam_UINT32("paraM2", 0) != 1234)) return TEnvironment::ShowTestErrorMessage(-5003, "TParamsList::SetParam / GetParam");
+	P1.SetParam_UINT32("Param2", 4234); if ((P1.Count() != 2) || (P1.GetParam_UINT32("paraM2", 0) != 4234)) return TEnvironment::ShowTestErrorMessage(-5004, "TParamsList::SetParam / GetParam");
+	P1.SetParam_INT64("Param3", -123456); if ((P1.Count() != 3) || (P1.GetParam_INT64("paraM3", 0) != -123456)) return TEnvironment::ShowTestErrorMessage(-5005, "TParamsList::SetParam / GetParam");
+	P1.SetParam_INT64("Param3", -423456); if ((P1.Count() != 3) || (P1.GetParam_INT64("paraM3", 0) != -423456)) return TEnvironment::ShowTestErrorMessage(-5006, "TParamsList::SetParam / GetParam");
+	P1.SetParam_UINT64("Param4", 123456); if ((P1.Count() != 4) || (P1.GetParam_UINT64("paraM4", 0) != 123456)) return TEnvironment::ShowTestErrorMessage(-5007, "TParamsList::SetParam / GetParam");
+	P1.SetParam_UINT64("Param4", 423456); if ((P1.Count() != 4) || (P1.GetParam_UINT64("paraM4", 0) != 423456)) return TEnvironment::ShowTestErrorMessage(-5008, "TParamsList::SetParam / GetParam");
+	P1.SetParam_DOUBLE("Param5", -1234.22); if ((P1.Count() != 5) || (P1.GetParam_DOUBLE("paraM5", 0) != -1234.22)) return TEnvironment::ShowTestErrorMessage(-5009, "TParamsList::SetParam / GetParam");
+	P1.SetParam_DOUBLE("Param5", -4234.22); if ((P1.Count() != 5) || (P1.GetParam_DOUBLE("paraM5", 0) != -4234.22)) return TEnvironment::ShowTestErrorMessage(-5010, "TParamsList::SetParam / GetParam");
+	P1.SetParam_BOOL("Param6", true); if ((P1.Count() != 6) || (P1.GetParam_BOOL("paraM6", false) != true)) return TEnvironment::ShowTestErrorMessage(-5011, "TParamsList::SetParam / GetParam");
+	P1.SetParam_BOOL("Param6", false); if ((P1.Count() != 6) || (P1.GetParam_BOOL("paraM6", true) != false)) return TEnvironment::ShowTestErrorMessage(-5012, "TParamsList::SetParam / GetParam");
+	DT1.SetValue(2025, 11, 11, 1, 1, 1); P1.SetParam_DATETIME("Param7", &DT1); P1.GetParam_DATETIME("paraM7", &DT2, DATETIME_EMPTY); if ((P1.Count() != 7) || (!DT2.IsEqual(2025, 11, 11, 1, 1, 1))) return TEnvironment::ShowTestErrorMessage(-5013, "TParamsList::SetParam / GetParam");
+	DT1.SetValue(2025, 11, 12, 1, 1, 1); P1.SetParam_DATETIME("pAraM7", &DT1); P1.GetParam_DATETIME("paraM7", &DT2, DATETIME_EMPTY); if ((P1.Count() != 7) || (!DT2.IsEqual(2025, 11, 12, 1, 1, 1))) return TEnvironment::ShowTestErrorMessage(-5014, "TParamsList::SetParam / GetParam");
+	P1.SetParam_STRING("Param8", "abcd"); P1.GetParam_STRING("paraM8", &S1, ""); if ((P1.Count() != 8) || (!S1.IsEqual("abcd"))) return TEnvironment::ShowTestErrorMessage(-5015, "TParamsList::SetParam / GetParam");
+	P1.SetParam_STRING("Param8", "abcde"); P1.GetParam_STRING("paraM8", &S1, ""); if ((P1.Count() != 8) || (!S1.IsEqual("abcde"))) return TEnvironment::ShowTestErrorMessage(-5016, "TParamsList::SetParam / GetParam");
+	B1.SetRandomBytes(12);
+	P1.SetParam_BYTES("Param9", &B1); P1.GetParam_BYTES("paraM9", &B2); if ((P1.Count() != 9) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-5017, "TParamsList::SetParam / GetParam");
+	B1.SetRandomBytes(12);
+	P1.SetParam_BYTES("Param9", &B1); P1.GetParam_BYTES("paraM9", &B2); if ((P1.Count() != 9) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-5018, "TParamsList::SetParam / GetParam");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
+//  Run validity tests for streams
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_Streams(void) {
+
+	TString S1, S2;
+	TBytes B1, B2;
+	TMemoryStream MS1;
+
+	INT64 R;
+
+	S1.SetValue("0123456789");
+	R = MS1.Write(S1.PChar(), 10); if ((R != 10) || (MS1.GetSize() != 10) || (MS1.GetPosition() != 10)) return TEnvironment::ShowTestErrorMessage(-6001, "TMemoryStream::Write");
+	S1.SetValue("9876543210");
+	R = MS1.Write(S1.PChar(), 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20)) return TEnvironment::ShowTestErrorMessage(-6002, "TMemoryStream::Write");
+	MS1.Rewind(); if (MS1.GetPosition() != 0) return TEnvironment::ShowTestErrorMessage(-6003, "TMemoryStream::Rewind");
+	MS1.Seek(0, SO_BEGIN); if (MS1.GetPosition() != 0) return TEnvironment::ShowTestErrorMessage(-6004, "TMemoryStream::Seek");
+	MS1.Seek(1, SO_CURRENT); if (MS1.GetPosition() != 1) return TEnvironment::ShowTestErrorMessage(-6005, "TMemoryStream::Seek");
+	MS1.Seek(1, SO_END); if (MS1.GetPosition() != 20) return TEnvironment::ShowTestErrorMessage(-6006, "TMemoryStream::Seek");
+	MS1.Seek(-1, SO_END); if (MS1.GetPosition() != 19) return TEnvironment::ShowTestErrorMessage(-6007, "TMemoryStream::Seek");
+
+	MS1.Rewind(); B2.SetValue("0123456789", 10);
+	R = MS1.Read(&B1, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 10) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6008, "TMemoryStream::Read");
+	B2.SetValue("9876543210", 10);
+	R = MS1.Read(&B1, 10); 
+	if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6009, "TMemoryStream::Read");
+	MS1.Seek(1, SO_BEGIN); B2.SetValue("1234567899", 10);
+	R = MS1.Read(&B1, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 11) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6010, "TMemoryStream::Read");
+	B2.SetValue("876543210x", 10);
+	R = MS1.Read(&B1, 10); if ((R != 9) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 9) != 0)) return TEnvironment::ShowTestErrorMessage(-6011, "TMemoryStream::Read");
+
+	MS1.Rewind(); B2.SetValue("01234567899876543210", 20);
+	R = MS1.Read(&B1, 100); if ((R != 20) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 20) != 0)) return TEnvironment::ShowTestErrorMessage(-6012, "TMemoryStream::Read");
+	MS1.Seek(-1, SO_END);
+	S1.SetValue("abcdefgh");
+	R = MS1.Write(S1.PChar(), 8); if ((R != 8) || (MS1.GetSize() != 27) || (MS1.GetPosition() != 27)) return TEnvironment::ShowTestErrorMessage(-6013, "TMemoryStream::Write");
+	MS1.Rewind(); B2.SetValue("0123456789987654321abcdefgh", 27);
+	R = MS1.Read(&B1, 100); if ((R != 27) || (MS1.GetSize() != 27) || (MS1.GetPosition() != 27) || (B1.Compare(&B2, 0, 27) != 0)) return TEnvironment::ShowTestErrorMessage(-6014, "TMemoryStream::Read");
+
+	TBinaryWriter* BW = new TBinaryWriter(&MS1, true);
+	TBinaryReader* BR = new TBinaryReader(&MS1, true);
+
+	MS1.Release();
+
+	for (UINT64 i = 0; i < 256; i++) {
+		INT8 I8 = (INT8)i;
+		if (!BW->WriteINT8(I8)) return TEnvironment::ShowTestErrorMessage(-6015, "TBinaryWriter::Write");
+		UINT8 U8 = (UINT8)i;
+		if (!BW->WriteUINT8(U8)) return TEnvironment::ShowTestErrorMessage(-6016, "TBinaryWriter::Write");
+		INT16 I16 = (INT16)(i + 0x7f00);
+		if (!BW->WriteINT16(I16)) return TEnvironment::ShowTestErrorMessage(-6017, "TBinaryWriter::Write");
+		UINT16 U16 = (UINT16)(i + 0x7f00);
+		if (!BW->WriteUINT16(U16)) return TEnvironment::ShowTestErrorMessage(-6018, "TBinaryWriter::Write");
+		INT32 I32 = (INT32)(i + 0x7fffff00);
+		if (!BW->WriteINT32(I32)) return TEnvironment::ShowTestErrorMessage(-6019, "TBinaryWriter::Write");
+		UINT32 U32 = (UINT32)(i + 0x7fffff00);
+		if (!BW->WriteUINT32(U32)) return TEnvironment::ShowTestErrorMessage(-6020, "TBinaryWriter::Write");
+		INT64 I64 = (INT64)(i + 0x4fffffffffffff00);
+		if (!BW->WriteINT64(I64)) return TEnvironment::ShowTestErrorMessage(-6021, "TBinaryWriter::Write");
+		UINT64 U64 = (UINT64)(i + 0x7fffffffffffff00);
+		if (!BW->WriteUINT64(U64)) return TEnvironment::ShowTestErrorMessage(-6022, "TBinaryWriter::Write");
+		FLOAT F = (FLOAT)(i + 0.334);
+		if (!BW->WriteFLOAT(F)) return TEnvironment::ShowTestErrorMessage(-6023, "TBinaryWriter::Write");
+		DOUBLE D = (DOUBLE)(i + 0.467);
+		if (!BW->WriteDOUBLE(D)) return TEnvironment::ShowTestErrorMessage(-6024, "TBinaryWriter::Write");
+		BOOL B = (i % 1) != 0;
+		if (!BW->WriteBOOL(B)) return TEnvironment::ShowTestErrorMessage(-6025, "TBinaryWriter::Write");
+		TDateTime DT; DT.SetValue(2004, 2, 2, 1, 2, 3); DT.AddDays((INT32)i);
+		if (!BW->WriteDATETIME(DT.GetValue())) return TEnvironment::ShowTestErrorMessage(-6026, "TBinaryWriter::Write");
+		DT.AddMonths((INT32)i);
+		if (!BW->WriteDATETIME(&DT)) return TEnvironment::ShowTestErrorMessage(-6027, "TBinaryWriter::Write");
+		S1.SetValue(i);
+		if (!BW->WriteSTRING(&S1)) return TEnvironment::ShowTestErrorMessage(-6028, "TBinaryWriter::Write");
+		S1.AppendValue(i); B1.SetCount(0); B1.SetValue(S1.PChar(), S1.Length);
+		if (!BW->WriteBYTES(&B1)) return TEnvironment::ShowTestErrorMessage(-6029, "TBinaryWriter::Write");
+	}
+	MS1.Rewind();
+	for (UINT64 i = 0; i < 256; i++) {
+		INT8 I8;
+		if ((!BR->ReadINT8(&I8)) || (I8 != (INT8)i)) return TEnvironment::ShowTestErrorMessage(-6030, "TBinaryWriter::Read");
+		UINT8 U8;
+		if ((!BR->ReadUINT8(&U8)) || (U8 != (UINT8)i)) return TEnvironment::ShowTestErrorMessage(-6031, "TBinaryWriter::Read");
+		INT16 I16;
+		if ((!BR->ReadINT16(&I16)) || (I16 != (INT16)(i + 0x7f00))) return TEnvironment::ShowTestErrorMessage(-6032, "TBinaryWriter::Read");
+		UINT16 U16;
+		if ((!BR->ReadUINT16(&U16)) || (U16 != (UINT16)(i + 0x7f00))) return TEnvironment::ShowTestErrorMessage(-6033, "TBinaryWriter::Read");
+		INT32 I32;
+		if ((!BR->ReadINT32(&I32)) || (I32 != (INT32)(i + 0x7fffff00))) return TEnvironment::ShowTestErrorMessage(-6034, "TBinaryWriter::Read");
+		UINT32 U32;
+		if ((!BR->ReadUINT32(&U32)) || (U32 != (UINT32)(i + 0x7fffff00))) return TEnvironment::ShowTestErrorMessage(-6035, "TBinaryWriter::Read");
+		INT64 I64;
+		if ((!BR->ReadINT64(&I64)) || (I64 != (INT64)(i + 0x4fffffffffffff00))) return TEnvironment::ShowTestErrorMessage(-6036, "TBinaryWriter::Read");
+		UINT64 U64;
+		if ((!BR->ReadUINT64(&U64)) || (U64 != (UINT64)(i + 0x7fffffffffffff00))) return TEnvironment::ShowTestErrorMessage(-6037, "TBinaryWriter::Read");
+		FLOAT F;
+		if ((!BR->ReadFLOAT(&F)) || (F != (FLOAT)((i + 0.334)))) return TEnvironment::ShowTestErrorMessage(-6038, "TBinaryWriter::Read");
+		DOUBLE D;
+		if ((!BR->ReadDOUBLE(&D)) || (D != (DOUBLE)((i + 0.467)))) return TEnvironment::ShowTestErrorMessage(-6039, "TBinaryWriter::Read");
+		BOOL B;
+		if ((!BR->ReadBOOL(&B)) || (B != ((i % 1) != 0))) return TEnvironment::ShowTestErrorMessage(-6040, "TBinaryWriter::Read");
+
+		TDateTime DT, DT2; DT.SetValue(2004, 2, 2, 1, 2, 3); DT.AddDays((INT32)i);
+		DATETIME DD1;
+		if ((!BR->ReadDATETIME(&DD1)) || (DD1 != DT.GetValue())) return TEnvironment::ShowTestErrorMessage(-6041, "TBinaryWriter::Read");
+		DT.AddMonths((INT32)i);
+		if ((!BR->ReadDATETIME(&DT2)) || (DT2.GetValue() != DT.GetValue())) return TEnvironment::ShowTestErrorMessage(-6042, "TBinaryWriter::Read");
+		S1.SetValue(i);
+		if ((!BR->ReadSTRING(&S2)) || (!S2.IsEqual(&S1))) return TEnvironment::ShowTestErrorMessage(-6043, "TBinaryWriter::Read");
+		S1.AppendValue(i); B1.SetCount(0); B1.SetValue(S1.PChar(), S1.Length);
+		if ((!BR->ReadBYTES(&B2)) || (B2.Compare(&B1) != 0)) return TEnvironment::ShowTestErrorMessage(-6044, "TBinaryWriter::Read");
+	}
+
+	delete BR;
+	delete BW;
 	return true; // all tests passed
 }
 //	................................................................................................
@@ -886,6 +1015,10 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TDateTime... ");
 	if (!RunValidityTests_TDateTime()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - Streams... ");
+	if (!RunValidityTests_Streams()) return false;
 	printf("OK.");
 
 	printf("\n\tRunning tests - TParamsList... ");

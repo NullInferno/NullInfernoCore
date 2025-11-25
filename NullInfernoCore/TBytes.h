@@ -22,7 +22,7 @@ public:
 	void Release(void); // Release the memory
 	BOOL Reallocate(INT64 iNewCapacity, BOOL iKeepContent = false); // Reallocate the memory
 public:
-	void SetValue(CONST_PBYTE iValue, INT64 iBytesCount); // Set value
+	void SetValue(CONST_PVOID iValue, INT64 iBytesCount); // Set value
 	void SetValue(TBytes* iValue); // Set value
 	void SetValue(TBytes& iValue); // Set value
 	void SetSharedValue(PBYTE iValue, INT64 iBytesCount); // Set shared value
@@ -34,6 +34,7 @@ public:
 	INT64 InsertBytes(INT64 iIndex, CONST_PBYTE iValue, INT64 iBytesCount); // Insert bytes at position
 public:
 	INT32 Compare(CONST_PBYTE iValue, INT64 iStartIndex = 0, INT64 iMaxBytesCount = -1); // Compare with a value
+	INT32 Compare(TBytes* iValue, INT64 iStartIndex = 0, INT64 iMaxBytesCount = -1); // Compare with a value
 public:
 	static INT64 GenerateRandomBytes(PBYTE oBytes, INT64 iBytesCount); // Generate random bytes
 };

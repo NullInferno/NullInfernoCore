@@ -147,22 +147,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="NullInfernoCore.h" />
+    <ClInclude Include="TBinaryReader.h" />
+    <ClInclude Include="TBinaryWriter.h" />
     <ClInclude Include="TBytes.h" />
     <ClInclude Include="TDateTime.h" />
     <ClInclude Include="TEnvironment.h" />
     <ClInclude Include="TList.h" />
+    <ClInclude Include="TMemoryStream.h" />
     <ClInclude Include="TParamsList.h" />
     <ClInclude Include="TStopwatch.h" />
+    <ClInclude Include="TStream.h" />
     <ClInclude Include="TString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonFunctions.cpp" />
+    <ClCompile Include="TBinaryReader.cpp" />
+    <ClCompile Include="TBinaryWriter.cpp" />
     <ClCompile Include="TBytes.cpp" />
     <ClCompile Include="TDateTime.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
     <ClCompile Include="TList.cpp" />
+    <ClCompile Include="TMemoryStream.cpp" />
     <ClCompile Include="TParamsList.cpp" />
     <ClCompile Include="TStopwatch.cpp" />
+    <ClCompile Include="TStream.cpp" />
     <ClCompile Include="TString.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

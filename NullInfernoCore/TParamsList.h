@@ -10,7 +10,8 @@ enum TParamType {
 	PTYPE_BOOL = 6,
 	PTYPE_DATETIME = 7,
 	PTYPE_STRING = 8,
-	PTYPE_BYTES = 9
+	PTYPE_BYTES = 9,
+	PTYPE_PARAMSLIST = 10
 };
 
 //	...............................................................................................
@@ -28,10 +29,15 @@ private:
 	void ClearParamEntry(CONST_PVOID iParamEntry); // Clear parameter entry
 public:
 	TParamsList(void); // Constructor
+	TParamsList(TParamsList* iSource); // Constructor
 	~TParamsList(void); // Destructor
 public:
 	void Release(void); // Release the memory
 	void Clear(void); // Clear all parameters
+	void CreateCopy(TParamsList* iSource); // Create a copy of another parameters list
+public:
+	void Serialize(TBytes* oBytes); // Serialize parameters to bytes
+	void Deserialize(TBytes* iBytes); // Deserialize parameters from bytes
 public:
 	INT64 Count(void); // Get number of parameters
 public:
@@ -47,6 +53,7 @@ public:
 	void SetParam_STRING(CONST_PCHAR iName, TString* iValue); // Set STRING parameter
 	void SetParam_BYTES(CONST_PCHAR iName, CONST_PBYTE iValue, INT64 iLength); // Set BYTES parameter
 	void SetParam_BYTES(CONST_PCHAR iName, TBytes *iValue); // Set BYTES parameter
+	void SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue); // Set PARAMSLIST parameter
 public:
 	INT32 GetParam_INT32(CONST_PCHAR iName, INT32 iDefaultValue = 0); // Get INT32 parameter
 	UINT32 GetParam_UINT32(CONST_PCHAR iName, UINT32 iDefaultValue = 0); // Get UINT32 parameter
@@ -58,5 +65,6 @@ public:
 	void GetParam_DATETIME(CONST_PCHAR iName, TDateTime* oResult, DATETIME iDefaultValue = DATETIME_EMPTY); // Get DATETIME parameter
 	void GetParam_STRING(CONST_PCHAR iName, TString *oResult, CONST_PCHAR iDefaultValue = ""); // Get STRING parameter
 	void GetParam_BYTES(CONST_PCHAR iName, TBytes* oResult); // Get BYTES parameter
+	void GetParam_ParamsList(CONST_PCHAR iName, TParamsList* oResult); // Get PARAMSLIST parameter
 };
 //	...............................................................................................

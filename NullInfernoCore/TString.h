@@ -51,6 +51,7 @@ public:
 	INT32 CaseCompare(TString* iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 	INT32 CaseCompare(TString& iValue, INT64 iStart = 0, INT64 iMaxLength = -1, INT32 iCodePage = 28591); // Compare with a value case insensitive
 	BOOL IsEqual(CONST_PCHAR iValue, INT64 iLength = -1); // Check equality with a value
+	BOOL IsEqual(TString* iValue); // Check equality with a value
 	BOOL IsEmpty(void); // Check if string is empty
 public:
 	void AppendValue(CONST_PCHAR iValue, INT64 iLength = -1); // Append value to the end

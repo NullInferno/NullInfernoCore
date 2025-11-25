@@ -92,7 +92,7 @@ TBytes::~TBytes(void) {
 //			pointer to the byte array or NULL if count is zero
 //	................................................................................................
 CONST_PBYTE TBytes::PByte(void) {
-	return Count == 0 ? NULL : (CONST_PBYTE)Value;
+	return FCapacity == 0 ? NULL : (CONST_PBYTE)Value;
 }
 //	................................................................................................
 //	................................................................................................
@@ -148,7 +148,7 @@ BOOL TBytes::Reallocate(INT64 iNewCapacity, BOOL iKeepContent) {
 //	Output:
 //			none
 //	................................................................................................
-void TBytes::SetValue(CONST_PBYTE iValue, INT64 iBytesCount) {
+void TBytes::SetValue(CONST_PVOID iValue, INT64 iBytesCount) {
 	if ((iBytesCount <= 0) || (iValue == NULL)) { // Empty byte array?
 		Count = 0; // Set count to zero
 		return;
@@ -225,7 +225,7 @@ void TBytes::SetRandomBytes(INT64 iBytesCount) {
 //			none
 //	................................................................................................
 void TBytes::SetCount(INT64 iBytesCount) {
-	if (IS_INDEX_OUT(iBytesCount, 0, Count)) return; // Is new count out of current capacity?
+	if (IS_INDEX_OUT(iBytesCount, 0, FCapacity)) return; // Is new count out of current capacity?
 	Count = iBytesCount; // Set new count
 }
 //	................................................................................................
@@ -303,5 +303,19 @@ INT32 TBytes::Compare(CONST_PBYTE iValue, INT64 iStartIndex, INT64 iMaxBytesCoun
 
 	if (iMaxBytesCount < 0) iMaxBytesCount = Count - iStartIndex; // Adjust max bytes count
 	return FNC_MEMCMP(Value + iStartIndex, iValue, (MIN(Count - iStartIndex, iMaxBytesCount)));	
+}
+//	................................................................................................
+//	................................................................................................
+//  Generate random bytes
+//	Input:
+//			iValue - value to compare with
+// 			iStartIndex - start index for comparison
+// 			iMaxBytesCount - maximum number of bytes to compare or -1 for full length
+//	Output:
+//			0 if equal, <0 if less, >0 if greater
+//	................................................................................................
+INT32 TBytes::Compare(TBytes* iValue, INT64 iStartIndex, INT64 iMaxBytesCount) {
+	if (iValue == NULL) return Count == 0 ? 0 : 1; // NULL value?
+	return Compare(iValue->Value, iStartIndex, iMaxBytesCount < 0 ? iValue->Count : MIN(iValue->Count, iMaxBytesCount)); // Compare with the value
 }
 //	................................................................................................

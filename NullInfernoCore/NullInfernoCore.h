@@ -166,6 +166,10 @@ class TList;
 class TBytes;
 class TParamsList;
 class TDateTime;
+class TStream;
+class TMemoryStream;
+class TBinaryReader;
+class TBinaryWriter;
 
 // Include other headers
 
@@ -176,6 +180,10 @@ class TDateTime;
 #include "TBytes.h"
 #include "TParamsList.h"
 #include "TDateTime.h"
+#include "TStream.h"
+#include "TMemoryStream.h"
+#include "TBinaryReader.h"
+#include "TBinaryWriter.h"
 
 // Macros
 
