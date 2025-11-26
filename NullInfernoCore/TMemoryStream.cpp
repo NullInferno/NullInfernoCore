@@ -14,6 +14,20 @@ TMemoryStream::TMemoryStream(INT64 iPageSize) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Constructor
+//	Input:
+// 			iContent - initial content of the memory stream
+// 			iPageSize - size of each memory page
+//	Output:
+//			none
+//	...............................................................................................
+TMemoryStream::TMemoryStream(TBytes* iContent, INT64 iPageSize) {
+	FMemoryPages = new TList(128); FSize = 0; FPosition = 0; // Initialize variables
+	FPageSize = iPageSize < 1 ? 16 : iPageSize; // Set page size with minimum of 16 bytes
+	SetContent(iContent); // Set the initial content
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Destructor
 //	Input:
 // 			none
@@ -81,6 +95,7 @@ void TMemoryStream::GetContent(TBytes* oBuffer) {
 		RemainingSize -= R; // Decrease remaining size to copy
 		MemBank++; // Move to the next memory bank
 	}
+	oBuffer->SetCount(FSize); // Set the count of the output buffer
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -94,6 +109,7 @@ void TMemoryStream::SetContent(TBytes* iBuffer) {
 	FPosition = 0; FSize = 0; // Reset position and size
 	if (iBuffer == NULL) return; // Invalid input buffer
 	Write(iBuffer->PByte(), iBuffer->Count); // Write the input buffer to the stream
+	FPosition = 0; // Reset position to the beginning
 }
 //	...............................................................................................
 //	...............................................................................................

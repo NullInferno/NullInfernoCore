@@ -11,6 +11,7 @@ private:
 	INT64 FPageSize; // Size of each memory page
 public:
 	TMemoryStream(INT64 iPageSize = 65536); // Constructor
+	TMemoryStream(TBytes *iContent, INT64 iPageSize = 65536); // Constructor
 	virtual ~TMemoryStream(void); // Destructor
 public:
 	void Release(void); // Release the memory

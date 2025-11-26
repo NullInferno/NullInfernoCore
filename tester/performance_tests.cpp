@@ -974,10 +974,11 @@ void RunPerformanceTests_Streams(void) {
 	TBytes B1; B1.Reallocate(8192);
 	TDateTime DT1; 
 	TString S1;
-	BYTE BUF[64];
+	
+	[[maybe_unused]] BYTE BUF[64];
 
 	// TMemoryStream::Write
-#if 1
+#if 0
 	MaxIters = 10000000;
 
 	UINT64 D = 1;
@@ -992,7 +993,7 @@ void RunPerformanceTests_Streams(void) {
 #endif
 
 	// TBinaryWriter::Write
-#if 1
+#if 0
 	MaxIters = 1000000;
 
 	DT1.SetCurrentDateTime();
@@ -1028,7 +1029,7 @@ void RunPerformanceTests_Streams(void) {
 
 #endif
 	// TBinaryReader::Read
-#if 1
+#if 0
 	MaxIters = 1000000;
 
 	DT1.SetCurrentDateTime();
@@ -1060,6 +1061,124 @@ void RunPerformanceTests_Streams(void) {
 	SW.PrintPerforanceResult("TBinaryReader::Read", Iters);
 	delete BR;
 #endif
+}
+//	................................................................................................
+
+//	................................................................................................
+//  Run performance tests - TParamsList
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TParamsList(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TParamsList P0, P1, P2;
+	TBytes B1;
+
+	P0.SetParam_INT32("param_name_1", -1);
+	P0.SetParam_UINT32("param_name_2", 1);
+	P0.SetParam_INT64("param_name_3", -1);
+	P0.SetParam_UINT64("param_name_4", 1);
+	P0.SetParam_DOUBLE("param_name_5", 1.1);
+	P0.SetParam_BOOL("param_name_6", false);
+	P0.SetParam_DATETIME("param_name_7", DATETIME_EMPTY);
+	P0.SetParam_STRING("param_name_8", "asaksasjakslasja");
+	P0.SetParam_BYTES("param_name_9", "0123456789", 10);
+
+	// TParamsList::Set
+#if 0
+	MaxIters = 200000;
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		P1.Clear();
+		P1.SetParam_INT32("param_name_1", -1);
+		P1.SetParam_UINT32("param_name_2", 1);
+		P1.SetParam_INT64("param_name_3", -1);
+		P1.SetParam_UINT64("param_name_4", 1);
+		P1.SetParam_DOUBLE("param_name_5", 1.1);
+		P1.SetParam_BOOL("param_name_6", false);
+		P1.SetParam_DATETIME("param_name_7", DATETIME_EMPTY);
+		P1.SetParam_STRING("param_name_8", "asaksasjakslasja");
+		P1.SetParam_BYTES("param_name_9", "0123456789", 10);
+		P1.SetParam_ParamsList("param_name_10", &P0);
+		if (P1.Count() != 10) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TParamsList::Set", Iters);
+#endif
+	// TParamsList::CreateCopy
+#if 0
+	MaxIters = 200000;
+
+	P1.CreateCopy(&P0);
+	P1.SetParam_ParamsList("param_name_10", &P0);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		P2.CreateCopy(&P1);
+		if (P2.Count() != 10) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TParamsList::CreateCopy", Iters);
+#endif
+	// TParamsList::IsEqual
+#if 0
+	MaxIters = 1000000;
+
+	P1.CreateCopy(&P0);
+	P1.SetParam_ParamsList("param_name_10", &P0);
+	P2.CreateCopy(&P1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (!P2.IsEqual(&P1)) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TParamsList::IsEqual", Iters);
+#endif
+	// TParamsList::Serialize
+#if 0
+	MaxIters = 100000;
+
+	P1.CreateCopy(&P0);
+	P1.SetParam_ParamsList("param_name_10", &P0);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		P1.Serialize(&B1);
+		//P2.Deserialize(&B1);
+		//if (!P2.IsEqual(&P1)) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TParamsList::Serialize", Iters);
+#endif
+	// TParamsList::Deserialize
+#if 0
+	MaxIters = 100000;
+
+	P1.CreateCopy(&P0);
+	P1.SetParam_ParamsList("param_name_10", &P0);
+	P1.Serialize(&B1);
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		P2.Deserialize(&B1);
+		if (!P2.IsEqual(&P1)) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TParamsList::Deserialize", Iters);
+#endif
 
 }
 //	................................................................................................
@@ -1078,5 +1197,6 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_TBytes();
 	RunPerformanceTests_TDateTime();
 	RunPerformanceTests_Streams();
+	RunPerformanceTests_TParamsList();
 }
 //	................................................................................................

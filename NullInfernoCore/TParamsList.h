@@ -25,7 +25,9 @@ private:
 private:
 	BOOL Reallocate(INT64 iNewCapacity, BOOL iKeepContent = false); // Reallocate the memory
 	CONST_PVOID FindParamEntry(CONST_PCHAR iName); // Find parameter entry by name
+	CONST_PVOID FindParamEntry(UINT64 iID); // Find parameter entry by ID
 	CONST_PVOID AddParamEntry(CONST_PCHAR iName, TParamType iType); // Add parameter entry
+	CONST_PVOID AddParamEntry(UINT64 iID, TParamType iType); // Add parameter entry
 	void ClearParamEntry(CONST_PVOID iParamEntry); // Clear parameter entry
 public:
 	TParamsList(void); // Constructor
@@ -40,6 +42,7 @@ public:
 	void Deserialize(TBytes* iBytes); // Deserialize parameters from bytes
 public:
 	INT64 Count(void); // Get number of parameters
+	BOOL IsEqual(TParamsList* iOtherList); // Check equality with another parameters list
 public:
 	void SetParam_INT32(CONST_PCHAR iName, INT32 iValue); // Set INT32 parameter
 	void SetParam_UINT32(CONST_PCHAR iName, UINT32 iValue); // Set UINT32 parameter
@@ -51,7 +54,7 @@ public:
 	void SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue); // Set DATETIME parameter
 	void SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue); // Set STRING parameter
 	void SetParam_STRING(CONST_PCHAR iName, TString* iValue); // Set STRING parameter
-	void SetParam_BYTES(CONST_PCHAR iName, CONST_PBYTE iValue, INT64 iLength); // Set BYTES parameter
+	void SetParam_BYTES(CONST_PCHAR iName, CONST_PVOID iValue, INT64 iLength); // Set BYTES parameter
 	void SetParam_BYTES(CONST_PCHAR iName, TBytes *iValue); // Set BYTES parameter
 	void SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue); // Set PARAMSLIST parameter
 public:

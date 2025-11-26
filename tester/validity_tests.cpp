@@ -839,7 +839,7 @@ BOOL RunValidityTests_TParamsList(void) {
 	TDateTime DT1, DT2;
 	TBytes B1, B2;
 
-	TParamsList P1, P2;
+	TParamsList P1, P2, P3;
 
 	P1.SetParam_INT32("Param1", -1234); if ((P1.Count() != 1) || (P1.GetParam_INT32("paraM1", 0) != -1234)) return TEnvironment::ShowTestErrorMessage(-5001, "TParamsList::SetParam / GetParam");
 	P1.SetParam_INT32("Param1", -4234); if ((P1.Count() != 1) || (P1.GetParam_INT32("paraM1", 0) != -4234)) return TEnvironment::ShowTestErrorMessage(-5002, "TParamsList::SetParam / GetParam");
@@ -861,6 +861,23 @@ BOOL RunValidityTests_TParamsList(void) {
 	P1.SetParam_BYTES("Param9", &B1); P1.GetParam_BYTES("paraM9", &B2); if ((P1.Count() != 9) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-5017, "TParamsList::SetParam / GetParam");
 	B1.SetRandomBytes(12);
 	P1.SetParam_BYTES("Param9", &B1); P1.GetParam_BYTES("paraM9", &B2); if ((P1.Count() != 9) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-5018, "TParamsList::SetParam / GetParam");
+
+	P2.CreateCopy(&P1); if (P2.Count() != P1.Count()) return TEnvironment::ShowTestErrorMessage(-5019, "TParamList::CreateCopy");
+	if (P2.GetParam_INT32("paraM1", 0) != -4234) return TEnvironment::ShowTestErrorMessage(-5020, "TParamList::CreateCopy");
+	if (P2.GetParam_UINT32("paraM2", 0) != 4234) return TEnvironment::ShowTestErrorMessage(-5021, "TParamList::CreateCopy");
+	if (P2.GetParam_INT64("paraM3", 0) != -423456) return TEnvironment::ShowTestErrorMessage(-5022, "TParamList::CreateCopy");
+	if (P2.GetParam_UINT64("paraM4", 0) != 423456) return TEnvironment::ShowTestErrorMessage(-5023, "TParamList::CreateCopy");
+	if (P2.GetParam_DOUBLE("paraM5", 0) != -4234.22) return TEnvironment::ShowTestErrorMessage(-5024, "TParamList::CreateCopy");
+	if (P2.GetParam_BOOL("paraM6", true) != false) return TEnvironment::ShowTestErrorMessage(-5025, "TParamList::CreateCopy");
+	DT2.SetValue(DATETIME_EMPTY); P2.GetParam_DATETIME("paraM7", &DT2, DATETIME_EMPTY); if (!DT2.IsEqual(2025, 11, 12, 1, 1, 1)) return TEnvironment::ShowTestErrorMessage(-5026, "TParamList::CreateCopy");
+	S1.SetLength(0); P2.GetParam_STRING("paraM8", &S1, ""); if (!S1.IsEqual("abcde")) return TEnvironment::ShowTestErrorMessage(-5027, "TParamList::CreateCopy");
+	B2.SetCount(0); P2.GetParam_BYTES("paraM9", &B2); if (B1.Compare(&B2) != 0) return TEnvironment::ShowTestErrorMessage(-5028, "TParamList::CreateCopy");
+
+	if (!P2.IsEqual(&P1)) return TEnvironment::ShowTestErrorMessage(-5028, "TParamList::IsEqual");
+
+	P1.SetParam_ParamsList("Param10", &P2); P1.GetParam_ParamsList("param10", &P3); if (!P2.IsEqual(&P3)) return TEnvironment::ShowTestErrorMessage(-5029, "TParamList::SetParam");
+
+	P1.Serialize(&B1); P2.Clear(); P2.Deserialize(&B1); if (!P2.IsEqual(&P1)) return TEnvironment::ShowTestErrorMessage(-5030, "TParamList::Serialize / TParamList::Deserialize");
 
 	return true; // all tests passed
 }
