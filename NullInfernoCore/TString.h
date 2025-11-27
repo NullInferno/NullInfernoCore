@@ -78,7 +78,9 @@ public:
 	void Substring(TString* oSubstr, INT64 iStartIndex, INT64 iLength = -1); // Get substring
 	void LeftSubstring(TString* oSubstr, INT64 iLength = -1); // Get substring from the left side
 	void RightSubstring(TString* oSubstr, INT64 iLength = -1); // Get substring from the right side
+	void ExtractNameValuePair(TString* oName, TString* oValue, CHAR iDelimiter = '=', CHAR iQuoteChar = '\"', CHAR iTrimChar = ' '); // Extract name-value pair from the string
 	void Trim(CHAR iTrimChar = ' '); // Trim the string
+	void TrimQuotes(CHAR iQuoteChar = ' '); // Trim quotes from the string
 	void LeftTrim(CHAR iTrimChar = ' '); // Trim the string from the left side
 	void RightTrim(CHAR iTrimChar = ' '); // Trim the string from the right side
 public:

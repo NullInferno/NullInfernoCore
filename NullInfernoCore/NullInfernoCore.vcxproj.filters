@@ -13,81 +13,99 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\base">
+      <UniqueIdentifier>{5160d4a8-efa7-43ae-8973-5dea3dcbc666}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\base">
+      <UniqueIdentifier>{413180d7-eaa9-435e-a3fb-f53f317273ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NullInfernoCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TEnvironment.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TStopwatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TString.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TBytes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TParamsList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TDateTime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TBinaryReader.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\base</Filter>
     </ClInclude>
     <ClInclude Include="TBinaryWriter.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\base</Filter>
     </ClInclude>
-    <ClInclude Include="TStream.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="TBytes.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TCommandLineParser.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TDateTime.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TEnvironment.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TList.h">
+      <Filter>Header Files\base</Filter>
     </ClInclude>
     <ClInclude Include="TMemoryStream.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TParamsList.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TStopwatch.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TStream.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TString.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="TStringList.h">
+      <Filter>Header Files\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TEnvironment.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TStopwatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CommonFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TString.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TBytes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TParamsList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TDateTime.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="TBinaryReader.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="TBinaryWriter.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\base</Filter>
     </ClCompile>
-    <ClCompile Include="TStream.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="TBytes.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TCommandLineParser.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TDateTime.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TEnvironment.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TList.cpp">
+      <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="TMemoryStream.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TParamsList.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TStopwatch.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TStream.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TString.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="TStringList.cpp">
+      <Filter>Source Files\base</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

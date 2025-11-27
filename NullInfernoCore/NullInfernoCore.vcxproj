@@ -44,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -72,6 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\..\bin\</OutDir>
+    <TargetName>$(ProjectName)_dbg</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\..\..\bin\</OutDir>
@@ -150,6 +152,7 @@
     <ClInclude Include="TBinaryReader.h" />
     <ClInclude Include="TBinaryWriter.h" />
     <ClInclude Include="TBytes.h" />
+    <ClInclude Include="TCommandLineParser.h" />
     <ClInclude Include="TDateTime.h" />
     <ClInclude Include="TEnvironment.h" />
     <ClInclude Include="TList.h" />
@@ -158,12 +161,14 @@
     <ClInclude Include="TStopwatch.h" />
     <ClInclude Include="TStream.h" />
     <ClInclude Include="TString.h" />
+    <ClInclude Include="TStringList.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonFunctions.cpp" />
     <ClCompile Include="TBinaryReader.cpp" />
     <ClCompile Include="TBinaryWriter.cpp" />
     <ClCompile Include="TBytes.cpp" />
+    <ClCompile Include="TCommandLineParser.cpp" />
     <ClCompile Include="TDateTime.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
     <ClCompile Include="TList.cpp" />
@@ -172,6 +177,7 @@
     <ClCompile Include="TStopwatch.cpp" />
     <ClCompile Include="TStream.cpp" />
     <ClCompile Include="TString.cpp" />
+    <ClCompile Include="TStringList.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

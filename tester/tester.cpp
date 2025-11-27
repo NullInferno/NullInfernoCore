@@ -1,6 +1,11 @@
+#ifdef WINDOWS_SYSTEM
+	#define _CRTDBG_MAP_ALLOC
+	#include <crtdbg.h>
+#endif
+
 #include "NullInfernoCore.h"
 
-BOOL RunAllValidityTests(void);
+BOOL RunAllValidityTests(INT32 iArgc, PCHAR* iArgs);
 void RunAllPerformanceTests(void);
 
 //	................................................................................................
@@ -55,6 +60,10 @@ void Temp(void) {
 //	................................................................................................
 INT32 main(INT32 iArgc, PCHAR* iArgs) {
 
+#ifdef WINDOWS_SYSTEM
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
 	setvbuf(stdout, NULL, _IONBF, 0); // Autoflush for stdout
 
 	printf("\n............................................................................................................");
@@ -72,7 +81,7 @@ INT32 main(INT32 iArgc, PCHAR* iArgs) {
 	//return 0;
 
 	printf("\nRunning validity tests...");
-	if (!RunAllValidityTests()) {
+	if (!RunAllValidityTests(iArgc, iArgs)) {
 		TEnvironment::CloseEnvironment();
 		printf("\n............................................................................................................");
 		printf("\n\n");
@@ -88,6 +97,7 @@ INT32 main(INT32 iArgc, PCHAR* iArgs) {
 	TEnvironment::CloseEnvironment();
 	printf("\n............................................................................................................");
 	printf("\n\n");
+
 	return 0;
 }
 //	................................................................................................

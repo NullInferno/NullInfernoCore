@@ -163,6 +163,7 @@ class TEnvironment;
 class TStopwatch;
 class TString;
 class TList;
+class TStringList;
 class TBytes;
 class TParamsList;
 class TDateTime;
@@ -170,6 +171,7 @@ class TStream;
 class TMemoryStream;
 class TBinaryReader;
 class TBinaryWriter;
+class TCommandLineParser;
 
 // Include other headers
 
@@ -178,12 +180,14 @@ class TBinaryWriter;
 #include "TString.h"
 #include "TList.h"
 #include "TBytes.h"
+#include "TStringList.h"
 #include "TParamsList.h"
 #include "TDateTime.h"
 #include "TStream.h"
 #include "TMemoryStream.h"
 #include "TBinaryReader.h"
 #include "TBinaryWriter.h"
+#include "TCommandLineParser.h"
 
 // Macros
 

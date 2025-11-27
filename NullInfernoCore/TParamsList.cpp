@@ -4,6 +4,7 @@
 typedef struct {
 	UINT64 ID;
 	enum TParamType Type;
+	PVOID UserData;
 	union {
 		INT32 ValueAsINT32;
 		UINT32 ValueAsUINT32;
@@ -51,7 +52,7 @@ BOOL TParamsList::Reallocate(INT64 iNewCapacity, BOOL iKeepContent) {
 //			pointer to parameter entry or NULL if not found
 //	...............................................................................................
 CONST_PVOID TParamsList::FindParamEntry(CONST_PCHAR iName) {
-	return FindParamEntry(TString::GenerateCaseHashCode(iName)); // Generate name ID and find by ID
+	return FindParamEntry(FIgnoreCase ? TString::GenerateCaseHashCode(iName) : TString::GenerateHashCode(iName)); // Generate name ID and find by ID
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -78,7 +79,7 @@ CONST_PVOID TParamsList::FindParamEntry(UINT64 iID) {
 //			pointer to new parameter entry or NULL if failed
 //	...............................................................................................
 CONST_PVOID TParamsList::AddParamEntry(CONST_PCHAR iName, TParamType iType) {
-	return AddParamEntry(TString::GenerateCaseHashCode(iName), iType); // Generate name ID and add by ID
+	return AddParamEntry(FIgnoreCase ? TString::GenerateCaseHashCode(iName) : TString::GenerateHashCode(iName), iType); // Generate name ID and add by ID
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -131,12 +132,13 @@ void TParamsList::ClearParamEntry(CONST_PVOID iParamEntry) {
 //	...............................................................................................
 //	Constructor
 //	Input:
-// 			none
+// 			iIgnoreCase - whether to ignore case for parameter names
 //	Output:
 //			none
 //	...............................................................................................
-TParamsList::TParamsList(void) {
+TParamsList::TParamsList(BOOL iIgnoreCase) {
 	FParams = NULL; FCount = FCapacity = 0; // Initialize members
+	FIgnoreCase = iIgnoreCase; // Set ignore case flag
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -203,9 +205,8 @@ void TParamsList::CreateCopy(TParamsList* iSource) {
 
 	for (INT64 i = 0; i < iSource->FCount; i++) { // Copy all parameters
 		PPARAM_ENTRY SrcPE = &((PPARAM_ENTRY)iSource->FParams)[i]; // Get source parameter entry
-		PPARAM_ENTRY DestPE = (PPARAM_ENTRY)AddParamEntry("", SrcPE->Type); // Add new parameter entry
+		PPARAM_ENTRY DestPE = (PPARAM_ENTRY)AddParamEntry(SrcPE->ID, SrcPE->Type); // Add new parameter entry
 		if (DestPE != NULL) {
-			DestPE->ID = SrcPE->ID; // Copy the ID
 			switch (SrcPE->Type) {
 				case PTYPE_INT32:
 					DestPE->Data.ValueAsINT32 = SrcPE->Data.ValueAsINT32; // Copy INT32 value
@@ -242,7 +243,7 @@ void TParamsList::CreateCopy(TParamsList* iSource) {
 			}
 		}
 	}
-
+	FIgnoreCase = iSource->FIgnoreCase; // Copy ignore case flag
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -466,14 +467,26 @@ BOOL TParamsList::IsEqual(TParamsList* iOtherList) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Check if parameter exists
+//	Input:
+// 			iName - parameter name
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TParamsList::ParamExists(CONST_PCHAR iName) {
+	return FindParamEntry(iName) != NULL; // Find parameter entry
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Set INT32 parameter
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_INT32(CONST_PCHAR iName, INT32 iValue) {
+void TParamsList::SetParam_INT32(CONST_PCHAR iName, INT32 iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_INT32) { // Same type?
@@ -489,6 +502,7 @@ void TParamsList::SetParam_INT32(CONST_PCHAR iName, INT32 iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_INT32); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsINT32 = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -496,10 +510,11 @@ void TParamsList::SetParam_INT32(CONST_PCHAR iName, INT32 iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_UINT32(CONST_PCHAR iName, UINT32 iValue) {
+void TParamsList::SetParam_UINT32(CONST_PCHAR iName, UINT32 iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_UINT32) { // Same type?
@@ -515,6 +530,7 @@ void TParamsList::SetParam_UINT32(CONST_PCHAR iName, UINT32 iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_UINT32); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsUINT32 = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -522,10 +538,11 @@ void TParamsList::SetParam_UINT32(CONST_PCHAR iName, UINT32 iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_INT64(CONST_PCHAR iName, INT64 iValue) {
+void TParamsList::SetParam_INT64(CONST_PCHAR iName, INT64 iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_INT64) { // Same type?
@@ -541,6 +558,7 @@ void TParamsList::SetParam_INT64(CONST_PCHAR iName, INT64 iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_INT64); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsINT64 = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -548,10 +566,11 @@ void TParamsList::SetParam_INT64(CONST_PCHAR iName, INT64 iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_UINT64(CONST_PCHAR iName, UINT64 iValue) {
+void TParamsList::SetParam_UINT64(CONST_PCHAR iName, UINT64 iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_UINT64) { // Same type?
@@ -567,6 +586,7 @@ void TParamsList::SetParam_UINT64(CONST_PCHAR iName, UINT64 iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_UINT64); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsUINT64 = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -574,10 +594,11 @@ void TParamsList::SetParam_UINT64(CONST_PCHAR iName, UINT64 iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iValue) {
+void TParamsList::SetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_DOUBLE) { // Same type?
@@ -593,6 +614,7 @@ void TParamsList::SetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_DOUBLE); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsDOUBLE = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -600,10 +622,11 @@ void TParamsList::SetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_BOOL(CONST_PCHAR iName, BOOL iValue) {
+void TParamsList::SetParam_BOOL(CONST_PCHAR iName, BOOL iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_BOOL) { // Same type?
@@ -619,6 +642,7 @@ void TParamsList::SetParam_BOOL(CONST_PCHAR iName, BOOL iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_BOOL); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsBOOL = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -626,10 +650,11 @@ void TParamsList::SetParam_BOOL(CONST_PCHAR iName, BOOL iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue) {
+void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_DATETIME) { // Same type?
@@ -645,6 +670,7 @@ void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_DATETIME); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsDATETIME = iValue; // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -652,11 +678,12 @@ void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, DATETIME iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue) {
-	SetParam_DATETIME(iName, iValue == NULL ? DATETIME_EMPTY : iValue->GetValue()); // Set the value
+void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue, PVOID iUserData) {
+	SetParam_DATETIME(iName, iValue == NULL ? DATETIME_EMPTY : iValue->GetValue(), iUserData); // Set the value
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -664,10 +691,11 @@ void TParamsList::SetParam_DATETIME(CONST_PCHAR iName, TDateTime* iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue) {
+void TParamsList::SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_STRING) { // Same type?
@@ -683,6 +711,7 @@ void TParamsList::SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_STRING); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsSTRING = new TString(iValue); // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -690,10 +719,11 @@ void TParamsList::SetParam_STRING(CONST_PCHAR iName, CONST_PCHAR iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_STRING(CONST_PCHAR iName, TString* iValue) {
+void TParamsList::SetParam_STRING(CONST_PCHAR iName, TString* iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_STRING) { // Same type?
@@ -709,6 +739,7 @@ void TParamsList::SetParam_STRING(CONST_PCHAR iName, TString* iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_STRING); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsSTRING = new TString(iValue); // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -717,10 +748,11 @@ void TParamsList::SetParam_STRING(CONST_PCHAR iName, TString* iValue) {
 // 			iName - parameter name
 // 			iValue - parameter value
 //			iLength - length of the value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_BYTES(CONST_PCHAR iName, CONST_PVOID iValue, INT64 iLength) {
+void TParamsList::SetParam_BYTES(CONST_PCHAR iName, CONST_PVOID iValue, INT64 iLength, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_BYTES) { // Same type?
@@ -736,6 +768,7 @@ void TParamsList::SetParam_BYTES(CONST_PCHAR iName, CONST_PVOID iValue, INT64 iL
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_BYTES); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsBYTES = new TBytes((CONST_PBYTE)iValue, iLength); // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -743,10 +776,11 @@ void TParamsList::SetParam_BYTES(CONST_PCHAR iName, CONST_PVOID iValue, INT64 iL
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_BYTES(CONST_PCHAR iName, TBytes* iValue) {
+void TParamsList::SetParam_BYTES(CONST_PCHAR iName, TBytes* iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_BYTES) { // Same type?
@@ -762,6 +796,7 @@ void TParamsList::SetParam_BYTES(CONST_PCHAR iName, TBytes* iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_BYTES); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsBYTES = new TBytes(iValue); // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -769,10 +804,11 @@ void TParamsList::SetParam_BYTES(CONST_PCHAR iName, TBytes* iValue) {
 //	Input:
 // 			iName - parameter name
 // 			iValue - parameter value
+//			iUserData - user data pointer
 //	Output:
 //			none
 //	...............................................................................................
-void TParamsList::SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue) {
+void TParamsList::SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue, PVOID iUserData) {
 	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
 	if (PE != NULL) { // Found?
 		if (PE->Type == PTYPE_PARAMSLIST) { // Same type?
@@ -788,6 +824,7 @@ void TParamsList::SetParam_ParamsList(CONST_PCHAR iName, TParamsList* iValue) {
 		PE = (PPARAM_ENTRY)AddParamEntry(iName, PTYPE_PARAMSLIST); // Add new parameter entry
 		if (PE != NULL) PE->Data.ValueAsPARAMSLIST = new TParamsList(iValue); // Set the value
 	}
+	PE->UserData = iUserData; // Set user data
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -966,5 +1003,362 @@ void TParamsList::GetParam_ParamsList(CONST_PCHAR iName, TParamsList* oResult) {
 		else oResult->Clear(); // Different type, return empty bytes
 	}
 	else oResult->Clear(); // Not found, return empty bytes
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get parameter user data
+//	Input:
+// 			iName - parameter name
+//	Output:
+//			stored value or NULL if not found
+//	...............................................................................................
+PVOID TParamsList::GetParam_UserData(CONST_PCHAR iName) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	return PE != NULL ? PE->UserData : NULL; // Return user data or NULL
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get INT32 parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+INT32 TParamsList::TryGetParam_INT32(CONST_PCHAR iName, INT32 iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch(PE->Type) {
+			case PTYPE_INT32:
+				return PE->Data.ValueAsINT32; // Return the INT32 value
+			case PTYPE_UINT32:
+				return (INT32)PE->Data.ValueAsUINT32; // Convert UINT32 to INT32
+			break;
+			case PTYPE_INT64:
+				return (INT32)PE->Data.ValueAsINT64; // Convert INT64 to INT32
+			break;
+			case PTYPE_UINT64:
+				return (INT32)PE->Data.ValueAsUINT64; // Convert UINT64 to INT32
+			break;
+			case PTYPE_DOUBLE:
+				return (INT32)(INT64)PE->Data.ValueAsDOUBLE; // Convert DOUBLE to INT32
+			break;
+			case PTYPE_BOOL:
+				return PE->Data.ValueAsBOOL ? 1 : 0; // Convert BOOL to INT32
+			break;
+			case PTYPE_DATETIME:
+				return (INT32)PE->Data.ValueAsDATETIME; // Convert DATETIME to INT32
+			case PTYPE_STRING: {
+				return StrToINT32(PE->Data.ValueAsSTRING->PChar(), iDefaultValue); // Convert STRING to INT32
+			} break;
+			default:
+				return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get UINT32 parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+UINT32 TParamsList::TryGetParam_UINT32(CONST_PCHAR iName, UINT32 iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return (UINT32)PE->Data.ValueAsINT32; // Convert INT32 to UINT32
+		case PTYPE_UINT32:
+			return PE->Data.ValueAsUINT32; // Return the UINT32 value
+			break;
+		case PTYPE_INT64:
+			return (UINT32)PE->Data.ValueAsINT64; // Convert INT64 to UINT32
+			break;
+		case PTYPE_UINT64:
+			return (UINT32)PE->Data.ValueAsUINT64; // Convert UINT64 to UINT32
+			break;
+		case PTYPE_DOUBLE:
+			return (UINT32)(UINT64)PE->Data.ValueAsDOUBLE; // Convert DOUBLE to UINT32
+			break;
+		case PTYPE_BOOL:
+			return PE->Data.ValueAsBOOL ? 1 : 0; // Convert BOOL to UINT32
+			break;
+		case PTYPE_DATETIME:
+			return (UINT32)PE->Data.ValueAsDATETIME; // Convert DATETIME to UINT32
+		case PTYPE_STRING: {
+			return StrToUINT32(PE->Data.ValueAsSTRING->PChar(), iDefaultValue); // Convert STRING to UINT32
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get INT64 parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+INT64 TParamsList::TryGetParam_INT64(CONST_PCHAR iName, INT64 iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return (INT64)PE->Data.ValueAsINT32; // Convert INT32 to INT64
+		case PTYPE_UINT32:
+			return (INT64)PE->Data.ValueAsUINT32; // Convert UINT32 to INT64
+			break;
+		case PTYPE_INT64:
+			return PE->Data.ValueAsINT64; // return the INT64 value
+			break;
+		case PTYPE_UINT64:
+			return (INT64)PE->Data.ValueAsUINT64; // Convert UINT64 to INT64
+			break;
+		case PTYPE_DOUBLE:
+			return (INT64)PE->Data.ValueAsDOUBLE; // Convert DOUBLE to INT64
+			break;
+		case PTYPE_BOOL:
+			return PE->Data.ValueAsBOOL ? 1 : 0; // Convert BOOL to INT64
+			break;
+		case PTYPE_DATETIME:
+			return (INT64)PE->Data.ValueAsDATETIME; // Convert DATETIME to INT64
+		case PTYPE_STRING: {
+			return StrToINT64(PE->Data.ValueAsSTRING->PChar(), iDefaultValue); // Convert STRING to INT64
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get UINT64 parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+UINT64 TParamsList::TryGetParam_UINT64(CONST_PCHAR iName, UINT64 iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return (UINT64)PE->Data.ValueAsINT32; // Convert INT32 to UINT64
+		case PTYPE_UINT32:
+			return (UINT64)PE->Data.ValueAsUINT32; // Convert UINT32 to UINT64
+			break;
+		case PTYPE_INT64:
+			return (UINT64)PE->Data.ValueAsINT64; // Convert INT64 to UINT64
+			break;
+		case PTYPE_UINT64:
+			return PE->Data.ValueAsUINT64; // Return the UINT64 value
+			break;
+		case PTYPE_DOUBLE:
+			return (UINT64)PE->Data.ValueAsDOUBLE; // Convert DOUBLE to UINT64
+			break;
+		case PTYPE_BOOL:
+			return PE->Data.ValueAsBOOL ? 1 : 0; // Convert BOOL to UINT64
+			break;
+		case PTYPE_DATETIME:
+			return (UINT64)PE->Data.ValueAsDATETIME; // Convert DATETIME to UINT64
+		case PTYPE_STRING: {
+			return StrToUINT64(PE->Data.ValueAsSTRING->PChar(), iDefaultValue); // Convert STRING to UINT64
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get DOUBLE parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+DOUBLE TParamsList::TryGetParam_DOUBLE(CONST_PCHAR iName, DOUBLE iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return (DOUBLE)PE->Data.ValueAsINT32; // Convert INT32 to DOUBLE
+		case PTYPE_UINT32:
+			return (DOUBLE)PE->Data.ValueAsUINT32; // Convert UINT32 to DOUBLE
+			break;
+		case PTYPE_INT64:
+			return (DOUBLE)PE->Data.ValueAsINT64; // Convert INT64 to DOUBLE
+			break;
+		case PTYPE_UINT64:
+			return (DOUBLE)PE->Data.ValueAsUINT64; // Convert UINT64 to DOUBLE
+			break;
+		case PTYPE_DOUBLE:
+			return PE->Data.ValueAsDOUBLE; // Return the DOUBLE value
+			break;
+		case PTYPE_BOOL:
+			return PE->Data.ValueAsBOOL ? 1.0 : 0.0; // Convert BOOL to DOUBLE
+			break;
+		case PTYPE_DATETIME:
+			return (DOUBLE)PE->Data.ValueAsDATETIME; // Convert DATETIME to DOUBLE
+		case PTYPE_STRING: {
+			return StrToDOUBLE(PE->Data.ValueAsSTRING->PChar(), iDefaultValue); // Convert STRING to DOUBLE
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get BOOL parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+BOOL TParamsList::TryGetParam_BOOL(CONST_PCHAR iName, BOOL iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return PE->Data.ValueAsINT32 != 0; // Convert INT32 to BOOL
+		case PTYPE_UINT32:
+			return PE->Data.ValueAsUINT32 != 0; // Convert UINT32 to BOOL
+			break;
+		case PTYPE_INT64:
+			return PE->Data.ValueAsINT64 != 0; // Convert INT64 to BOOL
+			break;
+		case PTYPE_UINT64:
+			return PE->Data.ValueAsUINT64 != 0; // Convert UINT64 to BOOL
+			break;
+		case PTYPE_DOUBLE:
+			return !IsEqualDOUBLES(PE->Data.ValueAsDOUBLE, 0.0); // Convert DOUBLE to BOOL
+			break;
+		case PTYPE_BOOL:
+			return PE->Data.ValueAsBOOL; // Return the BOOL value
+			break;
+		case PTYPE_DATETIME:
+			return PE->Data.ValueAsDATETIME != DATETIME_EMPTY; // Convert DATETIME to BOOL
+		case PTYPE_STRING: {
+			return (!PE->Data.ValueAsSTRING->IsEmpty()) && (!PE->Data.ValueAsSTRING->IsEqual("0")); // Convert STRING to BOOL
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get DATETIME parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			iDefaultValue - default value
+//	Output:
+//			stored value or default value
+//	...............................................................................................
+DATETIME TParamsList::TryGetParam_DATETIME(CONST_PCHAR iName, DATETIME iDefaultValue) {
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32:
+			return (DATETIME)PE->Data.ValueAsINT32; // Convert INT32 to DATETIME
+		case PTYPE_UINT32:
+			return (DATETIME)PE->Data.ValueAsUINT32; // Convert UINT32 to DATETIME
+			break;
+		case PTYPE_INT64:
+			return (DATETIME)PE->Data.ValueAsINT64; // Convert INT64 to DATETIME
+			break;
+		case PTYPE_UINT64:
+			return (DATETIME)PE->Data.ValueAsUINT64; // Convert UINT64 to DATETIME
+			break;
+		case PTYPE_DOUBLE:
+			return (DATETIME)PE->Data.ValueAsDOUBLE; // Convert DOUBLE to DATETIME
+			break;
+		case PTYPE_DATETIME:
+			return PE->Data.ValueAsDATETIME; // Return the DATETIME value
+		case PTYPE_STRING: {
+			DATETIME D = TDateTime::ParseDateTime(PE->Data.ValueAsSTRING->PChar());
+			return D != DATETIME_EMPTY ? D : iDefaultValue; // Convert STRING to DATETIME
+		} break;
+		default:
+			return iDefaultValue; // Unsupported type, return default value
+		}
+	}
+	return iDefaultValue; // Not found, return default value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get DATETIME parameter or try convert
+//	Input:
+// 			iName - parameter name
+//			oResult - output result
+// 			iDefaultValue - default value
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::TryGetParam_DATETIME(CONST_PCHAR iName, TDateTime* oResult, DATETIME iDefaultValue) {
+	if (oResult == NULL) return; // Invalid output pointer
+	oResult->SetValue(TryGetParam_DATETIME(iName, iDefaultValue)); // Get the value
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Get TString parameter or try convert
+//	Input:
+// 			iName - parameter name
+// 			oResult - output result
+// 			iDefaultValue - default value
+//	Output:
+//			none
+//	...............................................................................................
+void TParamsList::TryGetParam_STRING(CONST_PCHAR iName, TString* oResult, CONST_PCHAR iDefaultValue) {
+	if (oResult == NULL) return; // Invalid output pointer
+	PPARAM_ENTRY PE = (PPARAM_ENTRY)FindParamEntry(iName); // Find parameter entry
+	if (PE != NULL) { // Found?
+		switch (PE->Type) {
+		case PTYPE_INT32: {
+			oResult->SetValue(PE->Data.ValueAsINT32); // Convert INT32 to STRING
+		} break;
+		case PTYPE_UINT32: {
+			oResult->SetValue(PE->Data.ValueAsUINT32); // Convert UINT32 to STRING
+		} break;
+		case PTYPE_INT64: {
+			oResult->SetValue(PE->Data.ValueAsINT64); // Convert INT64 to STRING
+		} break;
+		case PTYPE_UINT64: {
+			oResult->SetValue(PE->Data.ValueAsINT64); // Convert UINT64 to STRING
+		} break;
+		case PTYPE_DOUBLE: {
+			oResult->SetValue(PE->Data.ValueAsDOUBLE, 12); // Convert DOUBLE to STRING
+		} break;
+		case PTYPE_BOOL: {
+			oResult->SetValue(PE->Data.ValueAsBOOL ? "1" : "0"); // Convert BOOL to STRING
+		} break;
+		case PTYPE_DATETIME: {
+			TDateTime D(PE->Data.ValueAsDATETIME);
+			D.FormatDateTime(oResult); // Convert DATETIME to STRING
+		} break;
+		case PTYPE_STRING: {
+			oResult->SetValue(PE->Data.ValueAsSTRING); // Return the STRING value
+		} break;
+		default:
+			oResult->SetValue(iDefaultValue); // Unsupported type, return default value
+		}
+	}
+	oResult->SetValue(iDefaultValue); // Not found, return default value
 }
 //	...............................................................................................

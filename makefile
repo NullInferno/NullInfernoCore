@@ -16,6 +16,7 @@ SRCS_LIB = TEnvironment.cpp \
 			CommonFunctions.cpp \
 			TString.cpp \
 			TList.cpp \
+			TStringList.cpp \
 			TBytes.cpp \
 			TParamsList.cpp \
 			TDateTime.cpp \
@@ -23,6 +24,7 @@ SRCS_LIB = TEnvironment.cpp \
 			TMemoryStream.cpp \
 			TBinaryWriter.cpp \
 			TBinaryReader.cpp \
+			TCommandLineParser.cpp \
 
 OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
 OBJDIR_TESTER = /home/nullinferno/projects/NullInfernoCore/objs

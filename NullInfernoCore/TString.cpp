@@ -90,6 +90,41 @@ void TString::RightSubstring(TString* oSubstr, INT64 iLength) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Extract name-value pair from the string
+//	Input:
+// 			oName - output name
+// 			oValue - output value
+// 			iDelimiter - delimiter character
+// 			iQuoteChar - quote character
+// 			iTrimChar - trim character
+//	Output:
+//			none
+//	...............................................................................................
+void TString::ExtractNameValuePair(TString* oName, TString* oValue, CHAR iDelimiter, CHAR iQuoteChar, CHAR iTrimChar) {
+	oName->SetLength(0); // Empty name
+	oValue->SetLength(0); // Empty value
+	if (Length == 0) return; // Empty content?
+
+	CONST_PCHAR S = Value; // Start of the string
+	CONST_PCHAR E = Value + Length - 1; // End of the string
+
+	while ((*S <= iTrimChar) && (S <= E)) S++; // Trim leading characters
+	if (S > E) return; // Entire string trimmed?
+
+	CONST_PCHAR S1 = S;
+	while ((*S1 != iDelimiter) && (S1 <= E)) S1++; // Search for the delimiter
+
+	oName->SetValue(S, *S1 == iDelimiter ? S1 - S : S1 - S + 1); // Entire string is the name
+	oName->RightTrim();
+
+	if (S1 > E) return;
+
+	oValue->SetValue(S1 + 1, E - S1); // Set the value
+	oValue->Trim(iTrimChar); // Trim the value
+	oValue->TrimQuotes(iQuoteChar); // Trim quotes from the value
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Trim the string
 //	Input:
 // 			iTrimChar - character to trim
@@ -115,6 +150,33 @@ void TString::Trim(CHAR iTrimChar) {
 		INT64 NewLength = E - S + 1; // New length of the string
 		if (NewLength == Length) return; // No change?
 
+		if (S > Value) FNC_MEMMOVE(Value, S, NewLength); // Move the remaining string
+		if (FCapacity != 0) { // Shared string cannot be modified
+			Value[NewLength] = 0; // Terminate the string
+		}
+		Length = NewLength; // Update length
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Trim quotes from the string
+//	Input:
+// 			iQuoteChar - quote character to trim
+//	Output:
+//			none
+//	...............................................................................................
+void TString::TrimQuotes(CHAR iQuoteChar) {
+	if (Length < 2) return; // Too short to have quotes
+	CONST_PCHAR S = Value; // Start of the string
+	CONST_PCHAR E = Value + Length - 1; // End of the string
+
+	while ((*S == iQuoteChar) && (*E == iQuoteChar) && (S < E)) { // Both ends are quotes?
+		S++; E--; // Move inward
+	}
+	if (S == E) SetLength(0); // Entire string trimmed
+	else {
+		INT64 NewLength = E - S + 1; // New length of the string
+		if (NewLength == Length) return; // No change?
 		if (S > Value) FNC_MEMMOVE(Value, S, NewLength); // Move the remaining string
 		if (FCapacity != 0) { // Shared string cannot be modified
 			Value[NewLength] = 0; // Terminate the string

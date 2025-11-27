@@ -477,21 +477,24 @@ void TList::DeleteRange(INT64 iStart, INT64 iCount, TListNotifyFunction iNotifyF
 // 			iValue - value to delete
 // 			iMaxRemovals - maximum number of items to delete (<= 0 means all occurrences)
 // 			iNotifyFunction - notification function called for the deleted item
+// 			iCompareFunction - comparison function to compare items (if NULL, direct comparison is used)
 //	Output:
 //			none
 //	...............................................................................................
-void TList::DeleteValue(PVOID iValue, INT64 iMaxRemovals, TListNotifyFunction iNotifyFunction) {
+void TList::DeleteValue(PVOID iValue, INT64 iMaxRemovals, TListNotifyFunction iNotifyFunction, TListBinarySearchCompareFunction iCompareFunction) {
 	if (iMaxRemovals <= 0) iMaxRemovals = FCount; // No removals required
 	INT64 FirstIndex;
 	
 	for (FirstIndex = 0; FirstIndex < FCount; FirstIndex++) { // Find first occurrence
-		if (FValues[FirstIndex] == iValue) break; // Value found?
+		BOOL Found = iCompareFunction != NULL ? iCompareFunction(iValue, FValues[FirstIndex]) == 0 : FValues[FirstIndex] == iValue;
+		if (Found) break;
 	}
 	if (FirstIndex >= FCount) return; // Value not found?
 
 	INT64 CurrIndex = FirstIndex;
 	for (; FirstIndex < FCount; FirstIndex++) {
-		if (FValues[FirstIndex] == iValue) { // Value found?
+		BOOL Found = iCompareFunction != NULL ? iCompareFunction(iValue, FValues[FirstIndex]) == 0 : FValues[FirstIndex] == iValue;
+		if (Found) { // Value found?
 			if (iNotifyFunction != NULL) iNotifyFunction(FValues[FirstIndex], FirstIndex); // Call notification function
 			if (--iMaxRemovals == 0) {
 				if (FirstIndex < FCount - 1) { // Are there remaining items?
@@ -567,16 +570,18 @@ void TList::DeleteValue(UINT64 iValue, INT64 iMaxRemovals, TListNotifyFunction i
 // 			iStartIndex - start index to search from
 // 			iMaxCount - maximum number of items to search (<0 means all items till the end)
 // 			iOccurrenceIndex - occurrence index to find (1 means first occurrence, 2 means second occurrence, etc.)
+//			iCompareFunction - comparison function to compare items (if NULL, direct comparison is used)
 //	Output:
 //			position of the found item or -1 if not found
 //	...............................................................................................
-INT64 TList::Find(PVOID iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccurrenceIndex) {
+INT64 TList::Find(PVOID iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccurrenceIndex, TListBinarySearchCompareFunction iCompareFunction) {
 	if (iStartIndex < 0) iStartIndex = 0; // Adjust start index
 	if (iStartIndex >= FCount) return -1; // Is start index out of range?
 
 	INT64 C = iMaxCount < 0 ? (FCount - iStartIndex) : (MIN(iMaxCount, FCount - iStartIndex)); // Calculate number of items to search
 	for (INT64 i = 0; i < C; i++) {
-		if (FValues[iStartIndex + i] == iValue) { // Value found?
+		BOOL Found = iCompareFunction != NULL ? iCompareFunction(iValue, FValues[iStartIndex + i]) == 0 : FValues[iStartIndex + i] == iValue;
+		if (Found) { // Value found?
 			if (--iOccurrenceIndex == 0) return iStartIndex + i; // Is this the required occurrence?
 		}
 	}
@@ -640,22 +645,24 @@ INT64 TList::Find(UINT64 iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccu
 }
 //	...............................................................................................
 //	...............................................................................................
-//	// Find index of the specified item in reverse order
+//	Find index of the specified item in reverse order
 //	Input:
 // 			iValue - value to find
 // 			iStartIndex - start index to search from (<0 means from the end)
 // 			iMaxCount - maximum number of items to search (<0 means all items till the beginning)
 // 			iOccurrenceIndex - occurrence index to find (1 means first occurrence, 2 means second occurrence, etc.)
+//			iCompareFunction - comparison function to compare items (if NULL, direct comparison is used)
 //	Output:
 //			position of the found item or -1 if not found
 //	...............................................................................................
-INT64 TList::ReverseFind(PVOID iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccurrenceIndex) {
+INT64 TList::ReverseFind(PVOID iValue, INT64 iStartIndex, INT64 iMaxCount, INT64 iOccurrenceIndex, TListBinarySearchCompareFunction iCompareFunction) {
 	if (FCount == 0) return -1; // Is the list empty?
 	if ((iStartIndex < 0) || (iStartIndex >= FCount)) iStartIndex = FCount - 1; // Adjust start index
 
 	INT64 C = iMaxCount < 0 ? iStartIndex + 1 : (MIN(iMaxCount, iStartIndex + 1)); // Calculate number of items to search
 	for (INT64 i = 0; i < C; i++) {
-		if (FValues[iStartIndex - i] == iValue) { // Value found?
+		BOOL Found = iCompareFunction != NULL ? iCompareFunction(iValue, FValues[iStartIndex - i]) == 0 : FValues[iStartIndex - i] == iValue;
+		if (Found) { // Value found?
 			if (--iOccurrenceIndex == 0) return iStartIndex - i; // Is this the required occurrence?
 		}
 	}
@@ -738,7 +745,7 @@ INT64 TList::BinaryFindFirst(PVOID iValue, TListBinarySearchCompareFunction iCom
 	// Run binary search
 	return BinarySearch(FValues, FCount, sizeof(PVOID), [](CONST_PVOID iSearchValue, CONST_PVOID iUserData)->INT32 {
 		_CONTEXT* V = (_CONTEXT*)iUserData;
-		return V->CompareFunction((PVOID)(*(CONST_PVOID*)iSearchValue), V->Value);
+		return V->CompareFunction((PVOID)(*(CONST_PVOID*)iSearchValue), (PVOID)(V->Value));
 		}, (CONST_PVOID)&Context, BINARY_SEARCH_FIRST_OCCURRENCE); // Perform binary search	
 
 }

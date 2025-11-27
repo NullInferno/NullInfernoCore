@@ -552,8 +552,8 @@ UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransform
 void _quicksort_impl(CONST_PVOID iData, INT64 iLeft, INT64 iRight, INT64 iItemSize, TCompareItemsFunction iCompareFunction, CONST_PVOID iUserData) {
 	if (iLeft >= iRight) return; // Base case
 
-	INT64 i = iLeft; // 
-	INT64 j = iRight; //  
+	INT64 i = iLeft;
+	INT64 j = iRight;
 	INT64 pivotIndex = iLeft + (iRight - iLeft) / 2; // Pivot index
 
 	while (i <= j) { // Partitioning
@@ -567,6 +567,8 @@ void _quicksort_impl(CONST_PVOID iData, INT64 iLeft, INT64 iRight, INT64 iItemSi
 				for (INT64 k = 0; k < iItemSize; k++) {
 					BYTE T = P1[k]; P1[k] = P2[k]; P2[k] = T;
 				}
+				if (pivotIndex == i) pivotIndex = j; // Update pivot index if needed
+				else if (pivotIndex == j) pivotIndex = i;
 			}
 			i++; // Move i to the right
 			j--; // Move j to the left

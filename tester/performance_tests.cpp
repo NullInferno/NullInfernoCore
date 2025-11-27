@@ -1183,6 +1183,101 @@ void RunPerformanceTests_TParamsList(void) {
 }
 //	................................................................................................
 
+
+//	................................................................................................
+//  Run performance tests - TStringList
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TStringList(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TStringList L1, L2;
+	TString S1;
+
+	// TStringList::CreateCopy
+#if 0
+	MaxIters = 2000;
+
+	for (INT64 i = 0; i < 1024; i++) {
+		S1.SetRandomBASE64Value(32);
+		L1.Add(&S1);
+	}
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		L2.CreateCopy(&L1);
+		if (L2.Count() != 1024) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TStringList::CreateCopy", Iters);
+#endif
+	// TStringList::Sort
+#if 0
+	MaxIters = 2000;
+
+	for (INT64 i = 0; i < 1024; i++) {
+		S1.SetRandomBASE64Value(32);
+		L1.Add(&S1);
+	}
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		L1.Sort(true);
+		L1.Sort(false);
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TStringList::Sort", Iters);
+#endif
+	// TStringList::Find
+#if 0
+	MaxIters = 100000;
+
+	for (INT64 i = 0; i < 1024; i++) {
+		S1.SetRandomBASE64Value(32);
+		L1.Add(&S1);
+	}
+	L1.Sort(true);
+	S1.SetValue(L1.Item(1000));
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.Find(&S1) != 1000) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TStringList::Find", Iters);
+#endif
+	// TStringList::BinaryFindFirst
+#if 0
+	MaxIters = 1000000;
+
+	for (INT64 i = 0; i < 1024; i++) {
+		S1.SetRandomBASE64Value(32);
+		L1.Add(&S1);
+	}
+	L1.Sort(true);
+	S1.SetValue(L1.Item(1000));
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (L1.BinaryFindFirst(&S1) != 1000) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TStringList::BinaryFindFirst", Iters);
+#endif
+
+}
+//	................................................................................................
+
 //	................................................................................................
 //  Run all performance tests
 //	Input:
@@ -1194,6 +1289,7 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_Environment();
 	RunPerformanceTests_TString();
 	RunPerformanceTests_TList();
+	RunPerformanceTests_TStringList();
 	RunPerformanceTests_TBytes();
 	RunPerformanceTests_TDateTime();
 	RunPerformanceTests_Streams();

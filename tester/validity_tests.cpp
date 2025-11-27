@@ -88,7 +88,7 @@ BOOL RunValidityTests_Environment(void) {
 			//Dbl = -551827.99113683111500;
 			DOUBLEToStr(Dbl, P1, i); FNC_SPRINTF(P2, "%.*lf", i, Dbl);
 			if (FNC_STRCMP(P1, P2) != 0) {
-				DOUBLEToStr(Dbl, P1, i); 
+				DOUBLEToStr(Dbl, P1, i);
 				FNC_SPRINTF(P2, "%.*lf", i, Dbl);
 				return TEnvironment::ShowTestErrorMessage(-27, "DOUBLEToStr (%d, %.14lf, %s, %s)", i, Dbl, P1, P2);
 			}
@@ -142,8 +142,8 @@ BOOL RunValidityTests_Environment(void) {
 
 	for (INT64 i = 0; i < 10240; i++) {
 		Dbl = TEnvironment::GenerateRandomDOUBLE();
-		DOUBLEToStr(Dbl, P1, 12); 
-		DOUBLE Dbl2 = StrToDOUBLE(P1, 0, '.', ' '); 
+		DOUBLEToStr(Dbl, P1, 12);
+		DOUBLE Dbl2 = StrToDOUBLE(P1, 0, '.', ' ');
 		if (!IsEqualDOUBLES(Dbl, Dbl2, 1e-12)) return TEnvironment::ShowTestErrorMessage(-37, "DOUBLEToStr + StrToDOUBLE (%.12lf, %.12lf)", Dbl, Dbl2);
 	}
 
@@ -169,7 +169,7 @@ BOOL RunValidityTests_Environment(void) {
 
 	if ((Data[0] != 9) || (Data[1] != 8) || (Data[2] != 7) || (Data[3] != 6) || (Data[4] != 5) || (Data[5] != 4) || (Data[6] != 3) || (Data[7] != 2)) return TEnvironment::ShowTestErrorMessage(-39, "QuickSort");
 
-	for (INT64 i = 0; i < 8; i++) Data[i] = i; 
+	for (INT64 i = 0; i < 8; i++) Data[i] = i;
 
 	for (INT64 i = -1; i < 8; i++) {
 		U64 = (UINT64)i;
@@ -199,6 +199,36 @@ BOOL RunValidityTests_Environment(void) {
 	U64 = GenerateHash64(P1, FNC_STRLEN(P1), NULL, -1);
 	if (U64 != GenerateHash64(P1, -1, NULL, 0)) return TEnvironment::ShowTestErrorMessage(-43, "GenerateHash64");
 
+	PUINT64 D1 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	PUINT64 D2 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+	PUINT64 D3 = (PUINT64)MEMORY_ALLOC(1024 * sizeof(UINT64));
+
+	for (INT64 i = 0; i < 1024; i++) D1[i] = TEnvironment::GenerateRandomUINT64();
+
+	for (INT64 j = 2; j < 1024; j++) {
+		FNC_MEMCPY(D2, D1, j * sizeof(UINT64));
+		FNC_MEMCPY(D3, D1, j * sizeof(UINT64));
+
+		qsort(D2, j, sizeof(UINT64), [](CONST_PVOID i1, CONST_PVOID i2) -> INT32 {
+			UINT64 u1 = *((PUINT64)i1);
+			UINT64 u2 = *((PUINT64)i2);
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			});
+		QuickSort(D3, j, sizeof(UINT64), [](CONST_PVOID iData, INT64 iIndex1, INT64 iIndex2, CONST_PVOID iUserData) -> INT32 {
+			UINT64 u1 = ((PUINT64)iData)[iIndex1];
+			UINT64 u2 = ((PUINT64)iData)[iIndex2];
+			return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+			}, D3);
+
+		for (INT64 i = 0; i < j; i++) {
+			if (D2[i] != D3[i]) return TEnvironment::ShowTestErrorMessage(-44, "QuickSort");
+		}
+	}
+
+	MEMORY_FREE(D1);
+	MEMORY_FREE(D2);
+	MEMORY_FREE(D3);
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true;
@@ -220,7 +250,7 @@ BOOL RunValidityTests_TString(void) {
 		return false;
 	}
 
-	TString S1, S2;
+	TString S1, S2, S3;
 
 	for (INT64 i = 0; i < 1024; i++) {
 		TString::GenerateRandomBASE64String(P1, i);
@@ -569,6 +599,23 @@ BOOL RunValidityTests_TString(void) {
 	CONST_PWCHAR PW1 = L"abcdefghi";
 	S1.SetValue(PW1, -1, 0); if (!S1.IsEqual("abcdefghi")) return TEnvironment::ShowTestErrorMessage(-1195, "TString::SetValue");
 
+	S1.SetValue("abc"); S1.TrimQuotes('\''); if (!S1.IsEqual("abc")) return TEnvironment::ShowTestErrorMessage(-1196, "TString::TrimQuotes");
+	S1.SetValue("'abc"); S1.TrimQuotes('\''); if (!S1.IsEqual("'abc")) return TEnvironment::ShowTestErrorMessage(-1197, "TString::TrimQuotes");
+	S1.SetValue("'abc'"); S1.TrimQuotes('\''); if (!S1.IsEqual("abc")) return TEnvironment::ShowTestErrorMessage(-1198, "TString::TrimQuotes");
+	S1.SetValue("abc'"); S1.TrimQuotes('\''); if (!S1.IsEqual("abc'")) return TEnvironment::ShowTestErrorMessage(-1199, "TString::TrimQuotes");
+	S1.SetValue("''"); S1.TrimQuotes('\''); if (!S1.IsEqual("")) return TEnvironment::ShowTestErrorMessage(-1200, "TString::TrimQuotes");
+	S1.SetValue("''abc''"); S1.TrimQuotes('\''); if (!S1.IsEqual("abc")) return TEnvironment::ShowTestErrorMessage(-1201, "TString::TrimQuotes");
+	S1.SetValue("''abc'"); S1.TrimQuotes('\''); if (!S1.IsEqual("'abc")) return TEnvironment::ShowTestErrorMessage(-1202, "TString::TrimQuotes");
+
+	S1.SetValue(""); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("")) || (!S3.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-1203, "TString::ExtractNameValuePair");
+	S1.SetValue("abc"); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-1204, "TString::ExtractNameValuePair");
+	S1.SetValue(" abc "); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-1205, "TString::ExtractNameValuePair");
+	S1.SetValue("abc="); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-1206, "TString::ExtractNameValuePair");
+	S1.SetValue(" abc    ="); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-1207, "TString::ExtractNameValuePair");
+	S1.SetValue(" abc    =test"); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual("test"))) return TEnvironment::ShowTestErrorMessage(-1208, "TString::ExtractNameValuePair");
+	S1.SetValue(" abc    =   test   "); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual("test"))) return TEnvironment::ShowTestErrorMessage(-1209, "TString::ExtractNameValuePair");
+	S1.SetValue(" abc    =   'test '   "); S1.ExtractNameValuePair(&S2, &S3, '=', '\'', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual("test "))) return TEnvironment::ShowTestErrorMessage(-1210, "TString::ExtractNameValuePair");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true; // All tests passed
@@ -689,6 +736,39 @@ BOOL RunValidityTests_TList(void) {
 		return 0;
 		});
 	if (R != -1) return TEnvironment::ShowTestErrorMessage(-2040, "TList::BinaryFindLast");
+
+	//PUINT64 Data = (PUINT64)MEMORY_ALLOC(128 * sizeof(UINT64));
+	//PUINT64 Data1 = (PUINT64)MEMORY_ALLOC(128 * sizeof(UINT64));
+	//if (Data == NULL) return false;
+	//if (Data1 == NULL) return false;
+
+	//for (INT64 i = 0; i < 128; i++) Data[i] = TEnvironment::GenerateRandomUINT64();
+
+	//for (INT64 i = 2; i < 128; i++) {
+	//	FNC_MEMCPY(Data1, Data, 128 * sizeof(UINT64));
+	//	L1.SetCount(0);
+	//	for (INT64 j = 0; j < i; j++) L1.Add(Data1[j]);
+	//	qsort(Data1, i, sizeof(UINT64), [](CONST_PVOID i1, CONST_PVOID i2) -> INT32 {
+	//		UINT64 u1 = *(PUINT64)i1;
+	//		UINT64 u2 = *(PUINT64)i2;
+	//		return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+	//		});
+	//	L1.Sort([](PVOID iItem1, PVOID iItem2) -> INT32 {
+	//		UINT64 u1 = (UINT64)iItem1;
+	//		UINT64 u2 = (UINT64)iItem2;
+	//		return u1 == u2 ? 0 : (u1 < u2 ? -1 : 1);
+	//		});
+	//	for (INT64 j = 0; j < i; j++) {
+	//		if (Data1[j] != (UINT64)L1.Item(j)) {
+	//			INT32 a = 1;
+	//			break;
+	//			//return TEnvironment::ShowTestErrorMessage(-2041, "TList::Sort");
+	//		}
+	//	}
+	//}
+
+	//MEMORY_FREE(Data);
+	//MEMORY_FREE(Data1);
 
 	return true; // all tests passed
 }
@@ -879,6 +959,9 @@ BOOL RunValidityTests_TParamsList(void) {
 
 	P1.Serialize(&B1); P2.Clear(); P2.Deserialize(&B1); if (!P2.IsEqual(&P1)) return TEnvironment::ShowTestErrorMessage(-5030, "TParamList::Serialize / TParamList::Deserialize");
 
+	if (!P1.ParamExists("param9")) return TEnvironment::ShowTestErrorMessage(-5031, "TParamList::ParamExists");
+	if (P1.ParamExists("paramX")) return TEnvironment::ShowTestErrorMessage(-5032, "TParamList::ParamExists");
+
 	return true; // all tests passed
 }
 //	................................................................................................
@@ -1006,13 +1089,152 @@ BOOL RunValidityTests_Streams(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TStringList
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TStringList(void) {
+
+	TStringList L1, L2;
+	TString S1;
+
+	INT64 R;
+
+	R = L1.Add("string1"); if ((R != 0) || (L1.Count() != 1) || (!L1.Item(0)->IsEqual("string1"))) return TEnvironment::ShowTestErrorMessage(-6001, "TStringList::Add");
+	S1.SetValue("string2"); R = L1.Add(&S1); if ((R != 1) || (L1.Count() != 2) || (!L1.Item(1)->IsEqual("string2"))) return TEnvironment::ShowTestErrorMessage(-6002, "TStringList::Add");
+	if (L1.Item(2) != NULL) return TEnvironment::ShowTestErrorMessage(-6003, "TStringList::Item");
+	R = L1.Add("string3"); if ((R != 2) || (L1.Count() != 3) || (!L1.Item(2)->IsEqual("string3"))) return TEnvironment::ShowTestErrorMessage(-6004, "TStringList::Add");
+	R = L1.Insert(2, "string4"); if ((R != 2) || (L1.Count() != 4) || (!L1.Item(2)->IsEqual("string4")) || (!L1.Item(3)->IsEqual("string3"))) return TEnvironment::ShowTestErrorMessage(-6005, "TStringList::Insert");
+
+	L1.Delete(0, 2); if ((L1.Count() != 2) || (!L1.Item(0)->IsEqual("string4")) || (!L1.Item(1)->IsEqual("string3"))) return TEnvironment::ShowTestErrorMessage(-6006, "TStringList::Delete");
+	L1.Clear(); L1.Add("aaa1"); L1.Add("aaa2"); L1.Add("aaa3"); L1.Add("aaa2");  L1.DeleteValue("aaa2", false); 
+	if ((L1.Count() != 3) || (!L1.Item(0)->IsEqual("aaa1")) || (!L1.Item(1)->IsEqual("aaa3")) || (!L1.Item(2)->IsEqual("aaa2"))) return TEnvironment::ShowTestErrorMessage(-6007, "TStringList::Delete");
+	L1.Clear(); L1.Add("aaa1"); L1.Add("aaa2"); L1.Add("aaa3"); L1.Add("aaa2");  L1.DeleteValue("aaa2", true);
+	if ((L1.Count() != 2) || (!L1.Item(0)->IsEqual("aaa1")) || (!L1.Item(1)->IsEqual("aaa3"))) return TEnvironment::ShowTestErrorMessage(-6008, "TStringList::Delete");
+
+	L1.Clear(); L1.Add("a1"); L1.Add("a2"); L1.Add("a3"); L1.Add("a4");
+	L2.CreateCopy(&L1);
+	if (!L2.IsEqual(&L1)) return TEnvironment::ShowTestErrorMessage(-6008, "TStringList::CreateCopy / IsEqual");
+
+	L1.Clear(); L1.Add("a1"); L1.Add("a2"); L1.Add("a3"); L1.Add("a4"); L1.Add("a1");
+	if (L1.Find("a", 0, -1, 1) != -1) return TEnvironment::ShowTestErrorMessage(-6009, "TStringList::Find");
+	if (L1.Find("a1", 0, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-6010, "TStringList::Find");
+	if (L1.Find("a1", 0, -1, 2) != 4) return TEnvironment::ShowTestErrorMessage(-6011, "TStringList::Find");
+	if (L1.Find("a1", 0, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-6011, "TStringList::Find");
+	if (L1.Find("a2", 0, -1, 1) != 1) return TEnvironment::ShowTestErrorMessage(-6012, "TStringList::Find");
+	if (L1.Find("a3", 0, -1, 1) != 2) return TEnvironment::ShowTestErrorMessage(-6013, "TStringList::Find");
+	if (L1.Find("a4", 0, -1, 1) != 3) return TEnvironment::ShowTestErrorMessage(-6014, "TStringList::Find");
+	L1.Clear(); L1.Add("A1"); L1.Add("A2"); L1.Add("A3"); L1.Add("A4"); L1.Add("A1");
+	if (L1.CaseFind("a", 0, -1, 1) != -1) return TEnvironment::ShowTestErrorMessage(-6015, "TStringList::CaseFind");
+	if (L1.CaseFind("a1", 0, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-6016, "TStringList::CaseFind");
+	if (L1.CaseFind("a1", 0, -1, 2) != 4) return TEnvironment::ShowTestErrorMessage(-6017, "TStringList::CaseFind");
+	if (L1.CaseFind("a1", 0, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-6018, "TStringList::CaseFind");
+	if (L1.CaseFind("a2", 0, -1, 1) != 1) return TEnvironment::ShowTestErrorMessage(-6019, "TStringList::CaseFind");
+	if (L1.CaseFind("a3", 0, -1, 1) != 2) return TEnvironment::ShowTestErrorMessage(-6020, "TStringList::CaseFind");
+	if (L1.CaseFind("a4", 0, -1, 1) != 3) return TEnvironment::ShowTestErrorMessage(-6021, "TStringList::CaseFind");
+
+	L1.Clear(); L1.Add("a1"); L1.Add("a2"); L1.Add("a3"); L1.Add("a4"); L1.Add("a1");
+	S1.SetValue("a1");
+	if (L1.ReverseFind("a", -1, -1, 1) != -1) return TEnvironment::ShowTestErrorMessage(-6022, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, -1, -1, 1) != 4) return TEnvironment::ShowTestErrorMessage(-6023, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, -1, -1, 2) != 0) return TEnvironment::ShowTestErrorMessage(-6024, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, -1, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-6025, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, 3, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-6026, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, 3, -1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-6027, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, -1, 1, 1) != 4) return TEnvironment::ShowTestErrorMessage(-6028, "TStringList::ReverseFind");
+	if (L1.ReverseFind(&S1, -1, 1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-6029, "TStringList::ReverseFind");
+	if (L1.ReverseFind("a2", -1, -1, 1) != 1) return TEnvironment::ShowTestErrorMessage(-6030, "TStringList::ReverseFind");
+	if (L1.ReverseFind("a3", -1, -1, 1) != 2) return TEnvironment::ShowTestErrorMessage(-6031, "TStringList::ReverseFind");
+	if (L1.ReverseFind("a4", -1, -1, 1) != 3) return TEnvironment::ShowTestErrorMessage(-6032, "TStringList::ReverseFind");
+	L1.Clear(); L1.Add("A1"); L1.Add("A2"); L1.Add("A3"); L1.Add("A4"); L1.Add("A1");
+	if (L1.ReverseCaseFind("a", -1, -1, 1) != -1) return TEnvironment::ShowTestErrorMessage(-6033, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, -1, -1, 1) != 4) return TEnvironment::ShowTestErrorMessage(-6034, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, -1, -1, 2) != 0) return TEnvironment::ShowTestErrorMessage(-6035, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, -1, -1, 3) != -1) return TEnvironment::ShowTestErrorMessage(-6036, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, 3, -1, 1) != 0) return TEnvironment::ShowTestErrorMessage(-6037, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, 3, -1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-6038, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, -1, 1, 1) != 4) return TEnvironment::ShowTestErrorMessage(-6039, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind(&S1, -1, 1, 2) != -1) return TEnvironment::ShowTestErrorMessage(-6040, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind("a2", -1, -1, 1) != 1) return TEnvironment::ShowTestErrorMessage(-6041, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind("a3", -1, -1, 1) != 2) return TEnvironment::ShowTestErrorMessage(-6042, "TStringList::ReverseCaseFind");
+	if (L1.ReverseCaseFind("a4", -1, -1, 1) != 3) return TEnvironment::ShowTestErrorMessage(-6043, "TStringList::ReverseCaseFind");
+
+	L1.Clear(); L1.Add("a1"); L1.Add("a3"); L1.Add("a4"); L1.Add("a2"); L1.Add("a1");
+	L1.Sort(true);
+	if ((!L1.Item(0)->IsEqual("a1")) || (!L1.Item(1)->IsEqual("a1")) || (!L1.Item(2)->IsEqual("a2")) || (!L1.Item(3)->IsEqual("a3")) || (!L1.Item(4)->IsEqual("a4"))) return TEnvironment::ShowTestErrorMessage(-6044, "TStringList::Sort");
+	L1.Clear(); L1.Add("a1"); L1.Add("a3"); L1.Add("a4"); L1.Add("a2"); L1.Add("a1");
+	L1.Sort(false);
+	if ((!L1.Item(0)->IsEqual("a4")) || (!L1.Item(1)->IsEqual("a3")) || (!L1.Item(2)->IsEqual("a2")) || (!L1.Item(3)->IsEqual("a1")) || (!L1.Item(4)->IsEqual("a1"))) return TEnvironment::ShowTestErrorMessage(-6045, "TStringList::Sort");
+
+	L1.Clear(); L1.Add("a1"); L1.Add("a3"); L1.Add("a4"); L1.Add("a2"); L1.Add("a1");
+	L1.Sort(true);
+
+	if (L1.BinaryFindFirst("a1") != 0) return TEnvironment::ShowTestErrorMessage(-6046, "TStringList::BinaryFindFirst");
+	if (L1.BinaryFindLast("a1") != 1) return TEnvironment::ShowTestErrorMessage(-6047, "TStringList::BinaryFindLast");
+	if (L1.BinaryFindFirst("a2") != 2) return TEnvironment::ShowTestErrorMessage(-6048, "TStringList::BinaryFindFirst");
+	if (L1.BinaryFindFirst("a3") != 3) return TEnvironment::ShowTestErrorMessage(-6049, "TStringList::BinaryFindFirst");
+	if (L1.BinaryFindFirst("a4") != 4) return TEnvironment::ShowTestErrorMessage(-6050, "TStringList::BinaryFindFirst");
+	if (L1.BinaryFindLast("a2") != 2) return TEnvironment::ShowTestErrorMessage(-6051, "TStringList::BinaryFindLast");
+	if (L1.BinaryFindLast("a3") != 3) return TEnvironment::ShowTestErrorMessage(-6052, "TStringList::BinaryFindLast");
+	if (L1.BinaryFindLast("a4") != 4) return TEnvironment::ShowTestErrorMessage(-6053, "TStringList::BinaryFindLast");
+	if (L1.BinaryFindFirst("aa") != -1) return TEnvironment::ShowTestErrorMessage(-6054, "TStringList::BinaryFindFirst");
+	if (L1.BinaryFindLast("aa") != -1) return TEnvironment::ShowTestErrorMessage(-6055, "TStringList::BinaryFindLast");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
+//  Run validity tests for TCommandLineParser
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TCommandLineParser(INT32 iArgc, PCHAR* iArgs) {
+
+	TCommandLineParser P;
+	BOOL B = true;
+
+	P.ProcessCommandLine("p1 -p2=1 p3=\"aa\" P4=0", [](INT64 iParamIndex, TString* iParamName, TString* iParamValue, PVOID iUserData) {
+
+		BOOL *BB = (PBOOL)iUserData;
+		switch (iParamIndex) {
+			case 0: {
+				if (!iParamName->IsEqual("p1")) { *BB = false; return; };
+				if (!iParamValue->IsEmpty()) { *BB = false; return; };
+			} break;
+			case 1: {
+				if (!iParamName->IsEqual("-p2")) { *BB = false; return; };
+				if (!iParamValue->IsEqual("1")) { *BB = false; return; };
+			} break;
+			case 2: {
+				if (!iParamName->IsEqual("p3")) { *BB = false; return; };
+				if (!iParamValue->IsEqual("aa")) { *BB = false; return; };
+			} break;
+			case 3: {
+				if (!iParamName->IsEqual("P4")) { *BB = false; return; };
+				if (!iParamValue->IsEqual("0")) { *BB = false; return; };
+			} break;
+		}
+		}, (PVOID)&B);
+
+	if (!B) return TEnvironment::ShowTestErrorMessage(-7001, "TCommandLineParser::ProcessCommandLine");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all validity tests
 //	Input:
 //			none
 //	Output:
 //			true / false
 //	................................................................................................
-BOOL RunAllValidityTests(void) {
+BOOL RunAllValidityTests(INT32 iArgc, PCHAR* iArgs) {
 
 	printf("\n\tRunning tests - environment... ");
 	if (!RunValidityTests_Environment()) return false;
@@ -1040,6 +1262,14 @@ BOOL RunAllValidityTests(void) {
 
 	printf("\n\tRunning tests - TParamsList... ");
 	if (!RunValidityTests_TParamsList()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TStringList... ");
+	if (!RunValidityTests_TStringList()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TCommandLineParser... ");
+	if (!RunValidityTests_TCommandLineParser(iArgc, iArgs)) return false;
 	printf("OK.");
 
 	return true; // all tests passed

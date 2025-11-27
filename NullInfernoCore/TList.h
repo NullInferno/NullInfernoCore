@@ -51,18 +51,18 @@ public:
 	INT64 InsertList(INT64 iIndex, TList* iList); // Insert all items from another list at specified index
 	void Delete(INT64 iIndex, TListNotifyFunction iNotifyFunction = NULL); // Delete item at specified index
 	void DeleteRange(INT64 iStart, INT64 iCount = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete range of items
-	void DeleteValue(PVOID iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
+	void DeleteValue(PVOID iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL, TListBinarySearchCompareFunction iCompareFunction = NULL); // Delete items with specified value
 	void DeleteValue(INT32 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 	void DeleteValue(UINT32 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 	void DeleteValue(INT64 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 	void DeleteValue(UINT64 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 public:
-	INT64 Find(PVOID iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item
+	INT64 Find(PVOID iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1, TListBinarySearchCompareFunction iCompareFunction = NULL); // Find index of the specified item
 	INT64 Find(INT32 iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item
 	INT64 Find(UINT32 iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item
 	INT64 Find(INT64 iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item
 	INT64 Find(UINT64 iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item
-	INT64 ReverseFind(PVOID iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
+	INT64 ReverseFind(PVOID iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1, TListBinarySearchCompareFunction iCompareFunction = NULL); // Find index of the specified item in reverse order
 	INT64 ReverseFind(INT32 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
 	INT64 ReverseFind(UINT32 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
 	INT64 ReverseFind(INT64 iValue, INT64 iStartIndex = -1, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item in reverse order
