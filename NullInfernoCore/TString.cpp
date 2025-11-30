@@ -29,6 +29,36 @@ const BYTE UPPER_CASE_TABLE_1252[] = { 0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0
 	} \
 
 //	...............................................................................................
+//	Find string index in the list of strings
+//	Input:
+// 			iList - list of strings
+//			iListSize - size of the list
+//	Output:
+//			index of the string in the list or -1 if not found
+//	...............................................................................................
+INT64 TString::FindStringIndex(CONST_PCHAR * iList, INT64 iListSize) {
+	for (INT64 i = 0; i < iListSize; i++) {
+		if (Compare(iList[i]) == 0) return i; // Found
+	}
+	return -1; // Not found
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find string index in the list of strings case insensitive
+//	Input:
+// 			iList - list of strings
+//			iListSize - size of the list
+//	Output:
+//			index of the string in the list or -1 if not found
+//	...............................................................................................
+INT64 TString::CaseFindStringIndex(CONST_PCHAR* iList, INT64 iListSize) {
+	for (INT64 i = 0; i < iListSize; i++) {
+		if (CaseCompare(iList[i]) == 0) return i; // Found
+	}
+	return -1; // Not found
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Get substring
 //	Input:
 // 			oSubstr - output substring
@@ -287,6 +317,58 @@ UINT64 TString::GenerateCaseHashCode(CONST_PCHAR iValue, INT64 iLength, INT32 iC
 	if (IS_PCHAR_EMPTY(iValue)) return 0; // Null string?
 	MAKE_LOWER_CASE_TABLE_POINTER(CaseTable, iCodePage); // Get the case conversion table
 	return iLength < 0 ? GenerateHash64(iValue, -1, CaseTable, 0) : GenerateHash64(iValue, iLength, CaseTable, -1); // Generate hash code
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find string index in the list of strings
+//	Input:
+// 			iValue - value to find
+// 			iLength - length of the value or <0 for null-terminated string
+// 			iList - list of strings
+// 			iListSize - size of the list
+//	Output:
+//			index of the string in the list or -1 if not found
+//	...............................................................................................
+INT64 TString::FindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize) {
+	if (iValue == NULL) return -1; // Null value?
+	if (iLength < 0) {
+		for (INT64 i = 0; i < iListSize; i++) {
+			if (FNC_STRCMP(iValue, iList[i]) == 0) return i; // Found
+		}
+		return -1; // Not found
+	}
+	else {
+		for (INT64 i = 0; i < iListSize; i++) {
+			if (FNC_STRNCMP(iValue, iList[i], iLength) == 0) return i; // Found
+		}
+		return -1; // Not found
+	}
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Find string index in the list of strings case insensitive
+//	Input:
+// 			iValue - value to find
+// 			iLength - length of the value or <0 for null-terminated string
+// 			iList - list of strings
+// 			iListSize - size of the list
+//	Output:
+//			index of the string in the list or -1 if not found
+//	...............................................................................................
+INT64 TString::CaseFindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize) {
+	if (iValue == NULL) return -1; // Null value?
+	if (iLength < 0) {
+		for (INT64 i = 0; i < iListSize; i++) {
+			if (FNC_STRCASECMP(iValue, iList[i]) == 0) return i; // Found
+		}
+		return -1; // Not found
+	}
+	else {
+		for (INT64 i = 0; i < iListSize; i++) {
+			if (FNC_STRNCASECMP(iValue, iList[i], iLength) == 0) return i; // Found
+		}
+		return -1; // Not found
+	}
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -751,6 +833,17 @@ INT64 TString::AsPWChar(PWCHAR oBuffer, INT64 iBufferLength, INT32 iCodePage) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Get last character
+//	Input:
+// 			none
+//	Output:
+//			last character or 0 if string is empty
+//	...............................................................................................
+CHAR TString::LastChar(void) {
+	return Length == 0 ? 0 : Value[Length - 1]; // Return last character
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Compare with a value
 //	Input:
 // 			iValue - value to compare with
@@ -1076,6 +1169,165 @@ void TString::AppendChars(CHAR iValue, INT64 iCount, BOOL iAppendOnlyIfNotExists
 		Length += iCount; // Update length
 		Value[Length] = 0; // Terminate the string
 	}
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+// 			iLength - length of the value or <0 for null-terminated string
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, CONST_PCHAR iValue, INT64 iLength) {
+	if (iIndex < 0) iIndex = 0; // Adjust index
+	if (iIndex > Length) {
+		iIndex = Length; // Adjust index
+		if (IS_PCHAR_EMPTY(iValue)) return iIndex; // Nothing to insert?
+		AppendValue(iValue, iLength); // Append at the end
+		return iIndex; // Return the index
+	}
+	if (IS_PCHAR_EMPTY(iValue)) return iIndex; // Nothing to insert?
+	INT64 L = (iLength < 0) ? FNC_STRLEN(iValue) : iLength; // Determine length
+	if (L == 0) return iIndex; // Nothing to insert?
+
+	if (Reallocate(L, true)) { // Reallocate memory
+		// Move existing content to make space
+		FNC_MEMMOVE(Value + iIndex + L, Value + iIndex, Length - iIndex);
+		// Copy new content
+		FNC_MEMCPY(Value + iIndex, iValue, L);
+		Length += L; // Update length
+		Value[Length] = 0; // Terminate the string
+	}
+	return iIndex; // Return the index
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, TString* iValue) {
+	return (iValue == NULL) ? iIndex : InsertValue(iIndex, (CONST_PCHAR)iValue->Value, iValue->Length); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, TString& iValue) {
+	return InsertValue(iIndex, (CONST_PCHAR)iValue.Value, iValue.Length); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, INT32 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = INT32ToStr(iValue, BUF); // Convert to string
+	return InsertValue(iIndex, BUF, L); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, UINT32 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = UINT32ToStr(iValue, BUF); // Convert to string
+	return InsertValue(iIndex, BUF, L); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, INT64 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = INT64ToStr(iValue, BUF); // Convert to string
+	return InsertValue(iIndex, BUF, L); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, UINT64 iValue) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = UINT64ToStr(iValue, BUF); // Convert to string
+	return InsertValue(iIndex, BUF, L); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertValue(INT64 iIndex, DOUBLE iValue, INT32 iDecimalPlaces, CHAR iDecimalPointChar) {
+	CHAR BUF[32]; // Buffer for string representation
+	INT32 L = DOUBLEToStr(iValue, BUF, iDecimalPlaces, iDecimalPointChar); // Convert to string
+	return InsertValue(iIndex, BUF, L); // Call the other overload
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Insert value at index
+//	Input:
+// 			iIndex - index to insert at
+// 			iValue - value to insert
+//	Output:
+//			none
+//	...............................................................................................
+INT64 TString::InsertChars(INT64 iIndex, CHAR iValue, INT64 iCount) {
+	if (iCount <= 0) return iIndex; // Nothing to insert?
+	if (Length == 0) {
+		AppendChars(iValue, iCount, false); // Append at the beginning
+		return 0; // Return the index
+	}
+
+	if (iIndex < 0) iIndex = 0; // Adjust index
+	if (iIndex > Length) {
+		iIndex = Length; // Adjust index
+		AppendChars(iValue, iCount, false); // Append at the beginning
+		return iIndex; // Return the index
+	}
+
+	if (Reallocate(Length + iCount, true)) { // Reallocate memory
+		// Move existing content to make space
+		FNC_MEMMOVE(Value + iIndex + iCount, Value + iIndex, Length - iIndex);
+		// Copy new content
+		FNC_MEMSET(Value + iIndex, iValue, iCount);
+		Length += iCount; // Update length
+		Value[Length] = 0; // Terminate the string
+	}
+	return iIndex; // Return the index
 }
 //	...............................................................................................
 //	...............................................................................................

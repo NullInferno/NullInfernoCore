@@ -27,11 +27,12 @@ public:
 	virtual TStream* GetBaseStream(void); // Get the base stream
 public:
 	virtual void Close(void); // Close the stream
+	virtual void Flush(void); // Flush the stream
 public:
 	virtual INT64 Read(PVOID oBuffer, INT64 iBytesToRead); // Read bytes from the stream
-	virtual INT64 Read(TBytes* oBuffer, INT64 iBytesToRead); // Read bytes from the stream
+	virtual INT64 Read(TBytes* oBuffer, INT64 iStartIndex, INT64 iBytesToRead); // Read bytes from the stream
 	virtual INT64 Write(CONST_PVOID iBuffer, INT64 iBytesToWrite); // Write bytes to the stream
-	virtual INT64 Write(TBytes* iBuffer, INT64 iBytesToWrite = -1); // Write bytes to the stream
+	virtual INT64 Write(TBytes* iBuffer, INT64 iStartIndex = 0, INT64 iBytesToWrite = -1); // Write bytes to the stream
 public:
 	virtual INT64 Seek(INT64 iOffset, TStreamSeekOrigin iOrigin = SO_CURRENT); // Seek to position in the stream
 	virtual INT64 GetPosition(void); // Get current position in the stream

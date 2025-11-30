@@ -1,15 +1,43 @@
 #pragma once
 
+enum TFileStreamContentMode {
+	CM_TEXT = 0,
+	CM_BINARY = 1
+};
+
+enum TFileStreamAccessMode {
+	AM_READ = 0,
+	AM_WRITE = 1,
+	AM_READ_WRITE = 2
+};
+
+enum TFileStreamOpenMode {
+	OM_CREATE_ALWAYS = 0, // Create a new file or overwrite existing
+	OM_CREATE_NEW = 1, // Create a new file, fail if exists
+	OM_OPEN_ALWAYS = 2, // Open existing file or create new
+	OM_OPEN_EXISTING = 3, // Open existing file, fail if not exists
+	OM_TRUNCATE_EXISTING = 4, // Open existing file and truncate to zero length
+	OM_APPEND_TO_END = 5 // Open existing file and set position to end
+};
+
 //	...............................................................................................
-//	Class TBinaryReader
+//	Class TFileStream
 //	...............................................................................................
-class TBinaryReader : public TStream {
+class TFileStream : public TStream {
+protected:
+	TFileStreamContentMode FContentMode; // Content mode
+	TFileStreamAccessMode FAccessMode; // Access mode
+	TFileStreamOpenMode FOpenMode; // Open mode
+	PVOID FHandle; // File handle
+	INT64 FPosition; // Cached current position
+	INT64 FSize; // Cached size of the file
+	TString FFilePath; // File path
 private:
-	TStream* FStream; // Base stream
-	BOOL FKeepOpen; // Whether to keep the base stream open on destruction
+	void UpdateSize(void); // Update cached size
+	void UpdatePosition(void); // Update cached position
 public:
-	TBinaryReader(TStream* iStream, BOOL iKeepOpen = false); // Constructor
-	~TBinaryReader(void); // Destructor
+	TFileStream(void); // Constructor
+	virtual ~TFileStream(void); // Destructor
 public:
 	virtual BOOL IsOpen(void); // Check if the stream is open
 	virtual BOOL IsEOF(void); // Check if the stream is at the end
@@ -19,6 +47,7 @@ public:
 	virtual TStream* GetBaseStream(void); // Get the base stream
 public:
 	virtual void Close(void); // Close the stream
+	virtual BOOL CloseAndDelete(void); // Close the stream and delete file
 	virtual void Flush(void); // Flush the stream
 public:
 	virtual INT64 Read(PVOID oBuffer, INT64 iBytesToRead); // Read bytes from the stream
@@ -31,20 +60,6 @@ public:
 	virtual INT64 GetSize(void); // Get size of the stream
 	virtual BOOL Rewind(void); // Rewind the stream to the beginning
 public:
-	BOOL ReadINT8(PINT8 oResult); // Read INT8 value
-	BOOL ReadUINT8(PUINT8 oResult); // Read UINT8 value
-	BOOL ReadINT16(PINT16 oResult); // Read INT16 value
-	BOOL ReadUINT16(PUINT16 oResult); // Read UINT16 value
-	BOOL ReadINT32(PINT32 oResult); // Read INT32 value
-	BOOL ReadUINT32(PUINT32 oResult); // Read UINT32 value
-	BOOL ReadINT64(PINT64 oResult); // Read INT64 value
-	BOOL ReadUINT64(PUINT64 oResult); // Read UINT64 value
-	BOOL ReadFLOAT(PFLOAT oResult); // Read FLOAT value
-	BOOL ReadDOUBLE(PDOUBLE oResult); // Read DOUBLE value
-	BOOL ReadBOOL(PBOOL oResult); // Read BOOL value
-	BOOL ReadDATETIME(PDATETIME oResult); // Read DATETIME value
-	BOOL ReadDATETIME(TDateTime* oResult); // Read DATETIME value
-	BOOL ReadSTRING(TString* oResult); // Read TString value
-	BOOL ReadBYTES(TBytes* oResult); // Read TBytes value
+	virtual INT32 Open(CONST_PCHAR iFilePath, TFileStreamAccessMode iAccessMode, TFileStreamOpenMode iOpenMode, TFileStreamContentMode iContentMode = CM_BINARY); // Open file stream
 };
 //	...............................................................................................

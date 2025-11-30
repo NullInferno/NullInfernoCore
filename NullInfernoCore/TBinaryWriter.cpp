@@ -106,6 +106,17 @@ void TBinaryWriter::Close(void) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Flush the stream
+//	Input:
+// 			none
+//	Output:
+//			none
+//	...............................................................................................
+void TBinaryWriter::Flush(void) {
+	if (FStream != NULL) FStream->Flush();
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
@@ -121,11 +132,12 @@ INT64 TBinaryWriter::Read(PVOID oBuffer, INT64 iBytesToRead) {
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
+// 			iStartIndex - start index in the buffer
 // 			iBytesToRead - number of bytes to read
 //	Output:
 //			real number of bytes readed or -1 on error
 //	...............................................................................................
-INT64 TBinaryWriter::Read(TBytes* oBuffer, INT64 iBytesToRead) {
+INT64 TBinaryWriter::Read(TBytes* oBuffer, INT64 iStartIndex, INT64 iBytesToRead) {
 	return -1; // Reading is not supported
 }
 //	...............................................................................................
@@ -145,12 +157,16 @@ INT64 TBinaryWriter::Write(CONST_PVOID iBuffer, INT64 iBytesToWrite) {
 //	Write bytes to the stream
 //	Input:
 // 			iBuffer - input buffer
+// 			iStartIndex - start index in the buffer
 // 			iBytesToWrite - number of bytes to write
 //	Output:
 //			real number of bytes written or -1 on error
 //	...............................................................................................
-INT64 TBinaryWriter::Write(TBytes* iBuffer, INT64 iBytesToWrite) {
-	return FStream == NULL ? -1 : FStream->Write(iBuffer, iBytesToWrite);
+INT64 TBinaryWriter::Write(TBytes* iBuffer, INT64 iStartIndex, INT64 iBytesToWrite) {
+	if (iBuffer == NULL) return -1; // Invalid input buffer
+	if (iStartIndex < 0 || iStartIndex >= iBuffer->Count) return -1; // Invalid start index
+	INT64 BytesToWrite = iBytesToWrite < 0 ? iBuffer->Count - iStartIndex : MIN(iBytesToWrite, iBuffer->Count - iStartIndex); // Calculate bytes to write
+	return Write(iBuffer->PByte() + iStartIndex, BytesToWrite); // Write bytes from the input buffer
 }
 //	...............................................................................................
 //	...............................................................................................

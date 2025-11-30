@@ -43,6 +43,7 @@ public:
 	UINT64 AsUINT64(void); // Get value
 	DOUBLE AsDOUBLE(void); // Get value
 	INT64 AsPWChar(PWCHAR oBuffer, INT64 iBufferLength, INT32 iCodePage = -1); // Get value as wide char string
+	CHAR LastChar(void); // Get last character
 public:
 	INT32 Compare(CONST_PCHAR iValue, INT64 iStart = 0, INT64 iMaxLength = -1); // Compare with a value
 	INT32 Compare(TString* iValue, INT64 iStart = 0, INT64 iMaxLength = -1); // Compare with a value
@@ -63,6 +64,15 @@ public:
 	void AppendValue(UINT64 iValue); // Append value to the end
 	void AppendValue(DOUBLE iValue, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Append value to the end
 	void AppendChars(CHAR iValue, INT64 iCount = 1, BOOL iAppendOnlyIfNotExists = false); // Append chars to the end
+	INT64 InsertValue(INT64 iIndex, CONST_PCHAR iValue, INT64 iLength = -1); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, TString* iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, TString& iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, INT32 iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, UINT32 iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, INT64 iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, UINT64 iValue); // Insert value at index
+	INT64 InsertValue(INT64 iIndex, DOUBLE iValue, INT32 iDecimalPlaces = 6, CHAR iDecimalPointChar = '.'); // Insert value at index
+	INT64 InsertChars(INT64 iIndex, CHAR iValue, INT64 iCount = 1); // Insert chars at index
 public:
 	void ToLowercase(INT32 iCodePage = 28591); // Convert to lower case
 	void ToUppercase(INT32 iCodePage = 28591); // Convert to upper case
@@ -74,6 +84,16 @@ public:
 	INT64 CaseFindChar(CHAR iValue, INT64 iStartIndex = 0, INT64 iMaxCharsCount = -1, INT64 iOccurrenceIndex = 1, INT32 iCodePage = 28591); // Find character in the string case insensitive
 	INT64 ReverseFindChar(CHAR iValue, INT64 iStartIndex = -1, INT64 iMaxCharsCount = -1, INT64 iOccurrenceIndex = 1); // Find character in the string in reverse order
 	INT64 ReverseCaseFindChar(CHAR iValue, INT64 iStartIndex = -1, INT64 iMaxCharsCount = -1, INT64 iOccurrenceIndex = 1, INT32 iCodePage = 28591); // Find character in the string case insensitive in reverse order
+	INT64 Find(CONST_PCHAR iValue, INT64 iStartIndex = 0, INT64 iOccurrenceIndex = 1); // Find string 
+	INT64 Find(TString* iValue, INT64 iStartIndex = 0, INT64 iOccurrenceIndex = 1); // Find string 
+	INT64 CaseFind(CONST_PCHAR iValue, INT64 iStartIndex = 0, INT64 iOccurrenceIndex = 1); // Find string case insensitive
+	INT64 CaseFind(TString* iValue, INT64 iStartIndex = 0, INT64 iOccurrenceIndex = 1); // Find string case insensitive
+	INT64 ReverseFind(CONST_PCHAR iValue, INT64 iStartIndex = -1, INT64 iOccurrenceIndex = 1); // Find string in reverse order
+	INT64 ReverseFind(TString* iValue, INT64 iStartIndex = -1, INT64 iOccurrenceIndex = 1); // Find string in reverse order
+	INT64 ReverseCaseFind(CONST_PCHAR iValue, INT64 iStartIndex = -1, INT64 iOccurrenceIndex = 1); // Find string case insensitive in reverse order
+	INT64 ReverseCaseFind(TString* iValue, INT64 iStartIndex = -1, INT64 iOccurrenceIndex = 1); // Find string case insensitive in reverse order
+	INT64 FindStringIndex(CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings
+	INT64 CaseFindStringIndex(CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings case insensitive
 public:
 	void Substring(TString* oSubstr, INT64 iStartIndex, INT64 iLength = -1); // Get substring
 	void LeftSubstring(TString* oSubstr, INT64 iLength = -1); // Get substring from the left side
@@ -89,5 +109,7 @@ public:
 	static INT64 GenerateRandomBASE64String(PCHAR oBuffer, INT64 iLength); // Generate a random BASE64 string
 	static UINT64 GenerateHashCode(CONST_PCHAR iValue, INT64 iLength = -1); // Generate hash code of the string data
 	static UINT64 GenerateCaseHashCode(CONST_PCHAR iValue, INT64 iLength = -1, INT32 iCodePage = 28591); // Generate hash code of the string data case insensitive
+	static INT64 FindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings
+	static INT64 CaseFindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings case insensitive
 };
 //	...............................................................................................

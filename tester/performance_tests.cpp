@@ -1183,7 +1183,6 @@ void RunPerformanceTests_TParamsList(void) {
 }
 //	................................................................................................
 
-
 //	................................................................................................
 //  Run performance tests - TStringList
 //	Input:
@@ -1279,6 +1278,62 @@ void RunPerformanceTests_TStringList(void) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run performance tests - TFileSystem
+//	Input:
+//			none
+//	Output:
+//			none
+//	................................................................................................
+void RunPerformanceTests_TFileSystem(void) {
+	[[maybe_unused]] INT64 Iters;
+	[[maybe_unused]] INT64 MaxIters;
+
+	TStopwatch SW;
+
+	TString S1;
+	TString P, N, N2, E;
+
+	// TFileSystem::IsValidPath
+#if 0
+#ifdef WINDOWS_SYSTEM
+	MaxIters = 1000000;
+	S1.SetValue("C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\SharedAssemblies\\Microsoft.VisualStudio.RemoteControl\\14.0.0.0\\16.3.52\\netfx\\Microsoft.VisualStudio.RemoteControl.dll");
+#else
+	MaxIters = 10000000;
+	S1.SetValue("/Program Files/Microsoft Visual Studio/18/Insiders/SharedAssemblies/Microsoft.VisualStudio.RemoteControl/14.0.0.0/16.3.52/netfx/Microsoft.VisualStudio.RemoteControl.dll");
+#endif
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (TFileSystem::IsValidPath(&S1) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TFileSystem::IsValidPath", Iters);
+#endif
+	// TFileSystem::ExtractPathParts
+#if 0
+#ifdef WINDOWS_SYSTEM
+	MaxIters = 1000000;
+	S1.SetValue("C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\SharedAssemblies\\Microsoft.VisualStudio.RemoteControl\\14.0.0.0\\16.3.52\\netfx\\Microsoft.VisualStudio.RemoteControl.dll");
+#else
+	MaxIters = 10000000;
+	S1.SetValue("/Program Files/Microsoft Visual Studio/18/Insiders/SharedAssemblies/Microsoft.VisualStudio.RemoteControl/14.0.0.0/16.3.52/netfx/Microsoft.VisualStudio.RemoteControl.dll");
+#endif
+
+	SW.Start();
+	for (Iters = 0; Iters < MaxIters; Iters++) {
+		if (TFileSystem::ExtractPathParts(&S1, &P, &N, &N2, &E) != 0) break;
+	}
+	SW.Pause();
+
+	SW.PrintPerforanceResult("TFileSystem::ExtractPathParts", Iters);
+#endif
+
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all performance tests
 //	Input:
 //			none
@@ -1294,5 +1349,6 @@ void RunAllPerformanceTests(void) {
 	RunPerformanceTests_TDateTime();
 	RunPerformanceTests_Streams();
 	RunPerformanceTests_TParamsList();
+	RunPerformanceTests_TFileSystem();
 }
 //	................................................................................................

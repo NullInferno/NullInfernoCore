@@ -1,5 +1,18 @@
 #include "NullInfernoCore.h"
 
+#ifdef WINDOWS_SYSTEM
+CONST_PCHAR TEST_FOLDER = "Z:\\Development\\Temp";
+
+TFileSystemAttributes WindowsAttaributes2FileSystemAttributes(UINT32 iValue);
+UINT32 FileSystemAttributes2WindowsAttaributes(TFileSystemAttributes iValue);
+
+#else
+CONST_PCHAR TEST_FOLDER = "/home/nullinferno/projects/Temp";
+
+TFileSystemAttributes LinuxAttaributes2FileSystemAttributes(UINT32 iAttr, UINT32 iChmod, UINT32 iExt2Attr);
+void FileSystemAttributes2LinuxAttaributes(TFileSystemAttributes iValue, UINT32* oAttr, UINT32* oChmod, UINT32* oExt2Attr);
+#endif
+
 //	................................................................................................
 //  Run validity tests for environment
 //	Input:
@@ -616,6 +629,12 @@ BOOL RunValidityTests_TString(void) {
 	S1.SetValue(" abc    =   test   "); S1.ExtractNameValuePair(&S2, &S3, '=', '\"', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual("test"))) return TEnvironment::ShowTestErrorMessage(-1209, "TString::ExtractNameValuePair");
 	S1.SetValue(" abc    =   'test '   "); S1.ExtractNameValuePair(&S2, &S3, '=', '\'', ' '); if ((!S2.IsEqual("abc")) || (!S3.IsEqual("test "))) return TEnvironment::ShowTestErrorMessage(-1210, "TString::ExtractNameValuePair");
 
+	S1.SetValue("aaaaaa"); if ((S1.InsertValue(7, "bb", -1) != 6) || (S1.Length != 8) || (!S1.IsEqual("aaaaaabb"))) return TEnvironment::ShowTestErrorMessage(-1211, "TString::InsertValue");
+	S1.SetValue("aaaaaa"); if ((S1.InsertValue(-1, "bb", -1) != 0) || (S1.Length != 8) || (!S1.IsEqual("bbaaaaaa"))) return TEnvironment::ShowTestErrorMessage(-1212, "TString::InsertValue");
+	S1.SetValue("aaaaaa"); if ((S1.InsertValue(2, "bb", -1) != 2) || (S1.Length != 8) || (!S1.IsEqual("aabbaaaa"))) return TEnvironment::ShowTestErrorMessage(-1213, "TString::InsertValue");
+	S1.SetValue("aaaaaa"); if ((S1.InsertValue(2, (INT32)-12) != 2) || (S1.Length != 9) || (!S1.IsEqual("aa-12aaaa"))) return TEnvironment::ShowTestErrorMessage(-1214, "TString::InsertValue");
+	S1.SetValue("aaaaaa"); if ((S1.InsertChars(3, 'b', 4) != 3) || (S1.Length != 10) || (!S1.IsEqual("aaabbbbaaa"))) return TEnvironment::ShowTestErrorMessage(-1215, "TString::InsertValue");
+
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
 	return true; // All tests passed
@@ -992,22 +1011,22 @@ BOOL RunValidityTests_Streams(void) {
 	MS1.Seek(-1, SO_END); if (MS1.GetPosition() != 19) return TEnvironment::ShowTestErrorMessage(-6007, "TMemoryStream::Seek");
 
 	MS1.Rewind(); B2.SetValue("0123456789", 10);
-	R = MS1.Read(&B1, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 10) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6008, "TMemoryStream::Read");
+	R = MS1.Read(&B1, 0, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 10) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6008, "TMemoryStream::Read");
 	B2.SetValue("9876543210", 10);
-	R = MS1.Read(&B1, 10); 
+	R = MS1.Read(&B1, 0, 10); 
 	if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6009, "TMemoryStream::Read");
 	MS1.Seek(1, SO_BEGIN); B2.SetValue("1234567899", 10);
-	R = MS1.Read(&B1, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 11) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6010, "TMemoryStream::Read");
+	R = MS1.Read(&B1, 0, 10); if ((R != 10) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 11) || (B1.Compare(&B2) != 0)) return TEnvironment::ShowTestErrorMessage(-6010, "TMemoryStream::Read");
 	B2.SetValue("876543210x", 10);
-	R = MS1.Read(&B1, 10); if ((R != 9) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 9) != 0)) return TEnvironment::ShowTestErrorMessage(-6011, "TMemoryStream::Read");
+	R = MS1.Read(&B1, 0, 10); if ((R != 9) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 9) != 0)) return TEnvironment::ShowTestErrorMessage(-6011, "TMemoryStream::Read");
 
 	MS1.Rewind(); B2.SetValue("01234567899876543210", 20);
-	R = MS1.Read(&B1, 100); if ((R != 20) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 20) != 0)) return TEnvironment::ShowTestErrorMessage(-6012, "TMemoryStream::Read");
+	R = MS1.Read(&B1, 0, 100); if ((R != 20) || (MS1.GetSize() != 20) || (MS1.GetPosition() != 20) || (B1.Compare(&B2, 0, 20) != 0)) return TEnvironment::ShowTestErrorMessage(-6012, "TMemoryStream::Read");
 	MS1.Seek(-1, SO_END);
 	S1.SetValue("abcdefgh");
 	R = MS1.Write(S1.PChar(), 8); if ((R != 8) || (MS1.GetSize() != 27) || (MS1.GetPosition() != 27)) return TEnvironment::ShowTestErrorMessage(-6013, "TMemoryStream::Write");
 	MS1.Rewind(); B2.SetValue("0123456789987654321abcdefgh", 27);
-	R = MS1.Read(&B1, 100); if ((R != 27) || (MS1.GetSize() != 27) || (MS1.GetPosition() != 27) || (B1.Compare(&B2, 0, 27) != 0)) return TEnvironment::ShowTestErrorMessage(-6014, "TMemoryStream::Read");
+	R = MS1.Read(&B1, 0, 100); if ((R != 27) || (MS1.GetSize() != 27) || (MS1.GetPosition() != 27) || (B1.Compare(&B2, 0, 27) != 0)) return TEnvironment::ShowTestErrorMessage(-6014, "TMemoryStream::Read");
 
 	TBinaryWriter* BW = new TBinaryWriter(&MS1, true);
 	TBinaryReader* BR = new TBinaryReader(&MS1, true);
@@ -1081,6 +1100,16 @@ BOOL RunValidityTests_Streams(void) {
 		S1.AppendValue(i); B1.SetCount(0); B1.SetValue(S1.PChar(), S1.Length);
 		if ((!BR->ReadBYTES(&B2)) || (B2.Compare(&B1) != 0)) return TEnvironment::ShowTestErrorMessage(-6044, "TBinaryWriter::Read");
 	}
+
+	MS1.Release(); MS1.Write("aaaaaaaaaa", 10);
+	MS1.Rewind(); B1.SetBytes('b', 20); R = MS1.Read(&B1, 0, 20);
+	if ((R != 10) || (B1.Count != 20) || (B1.Compare((PBYTE)"aaaaaaaaaabbbbbbbbbb", 0, 20) != 0)) return TEnvironment::ShowTestErrorMessage(-6045, "TMemoryStream::Read");
+	MS1.Rewind(); B1.SetBytes('b', 20); R = MS1.Read(&B1, 2, 20);
+	if ((R != 10) || (B1.Count != 20) || (B1.Compare((PBYTE)"bbaaaaaaaaaabbbbbbbb", 0, 20) != 0)) return TEnvironment::ShowTestErrorMessage(-6046, "TMemoryStream::Read");
+	MS1.Rewind(); B1.SetBytes('b', 20); R = MS1.Read(&B1, 15, 20);
+	if ((R != 10) || (B1.Count != 25) || (B1.Compare((PBYTE)"bbbbbbbbbbbbbbbaaaaaaaaaa", 0, 25) != 0)) return TEnvironment::ShowTestErrorMessage(-6047, "TMemoryStream::Read");
+	MS1.Rewind(); B1.SetBytes('b', 20); R = MS1.Read(&B1, 100, 20);
+	if ((R != 10) || (B1.Count != 30) || (B1.Compare((PBYTE)"bbbbbbbbbbbbbbbbbbbbaaaaaaaaaa", 0, 30) != 0)) return TEnvironment::ShowTestErrorMessage(-6048, "TMemoryStream::Read");
 
 	delete BR;
 	delete BW;
@@ -1228,6 +1257,370 @@ BOOL RunValidityTests_TCommandLineParser(INT32 iArgc, PCHAR* iArgs) {
 //	................................................................................................
 
 //	................................................................................................
+//  Run validity tests for TFileSystem
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TFileSystem(void) {
+
+	TString S1, Path, Name, NameOnly, Ext;
+	INT32 R;
+
+#ifdef WINDOWS_SYSTEM
+
+	if (TFileSystem::IsValidPath("") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8001, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("x") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8002, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("x:") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8003, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("1:\\") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8004, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\") != 0) return TEnvironment::ShowTestErrorMessage(-8005, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows") != 0) return TEnvironment::ShowTestErrorMessage(-8006, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\\\") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8007, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\") != 0) return TEnvironment::ShowTestErrorMessage(-8008, "TFileSystem::IsValidPath");
+	S1.SetValue("c:\\"); S1.AppendChars('a', MAX_PATH_LENGTH); if (TFileSystem::IsValidPath(&S1) != FILE_SYSTEM_ERROR_PATH_TOO_LONG) return TEnvironment::ShowTestErrorMessage(-8009, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\\\Windows") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8010, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\LPT1\\a.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8011, "TFileSystem::IsValidPath");
+
+	S1.SetValue("C:\\"); R = TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\"))) return TEnvironment::ShowTestErrorMessage(-8012, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("C:\\Windows"); R = TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Windows\\"))) return TEnvironment::ShowTestErrorMessage(-8013, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("C:\\Windows\\"); R = TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Windows\\"))) return TEnvironment::ShowTestErrorMessage(-8014, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("C:\\"); R = TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\"))) return TEnvironment::ShowTestErrorMessage(-8015, "TFileSystem::RemovePathSeparator");
+	S1.SetValue("C:\\Windows"); R = TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Windows"))) return TEnvironment::ShowTestErrorMessage(-8016, "TFileSystem::RemovePathSeparator");
+	S1.SetValue("C:\\Windows\\"); R = TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Windows"))) return TEnvironment::ShowTestErrorMessage(-8017, "TFileSystem::RemovePathSeparator");
+
+	S1.SetValue("c:\\"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\")) || (!Name.IsEqual("")) || (!NameOnly.IsEqual("")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8018, "TFileSystem::ExtractPathParts");
+	S1.SetValue("c:\\windows"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\")) || (!Name.IsEqual("windows")) || (!NameOnly.IsEqual("windows")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8019, "TFileSystem::ExtractPathParts");
+	S1.SetValue("c:\\windows\\"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\")) || (!Name.IsEqual("windows")) || (!NameOnly.IsEqual("windows")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8020, "TFileSystem::ExtractPathParts");
+	S1.SetValue("c:\\windows\\system"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\windows")) || (!Name.IsEqual("system")) || (!NameOnly.IsEqual("system")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8021, "TFileSystem::ExtractPathParts");
+	S1.SetValue("c:\\windows\\system\\a.txt"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\windows\\system")) || (!Name.IsEqual("a.txt")) || (!NameOnly.IsEqual("a")) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8022, "TFileSystem::ExtractPathParts");
+	S1.SetValue("c:\\windows\\system\\a.txt\\"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("c:\\windows\\system")) || (!Name.IsEqual("a.txt")) || (!NameOnly.IsEqual("a")) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8023, "TFileSystem::ExtractPathParts");
+
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("c:\\windows\\system\\a.txt"); R = TFileSystem::ExtractPathParts(&S1, &Path, NULL, NULL, NULL); if ((R != 0) || (!Path.IsEqual("c:\\windows\\system"))) return TEnvironment::ShowTestErrorMessage(-8024, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("c:\\windows\\system\\a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, &Name, NULL, NULL); if ((R != 0) || (!Name.IsEqual("a.txt"))) return TEnvironment::ShowTestErrorMessage(-8025, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("c:\\windows\\system\\a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, NULL, &NameOnly, NULL); if ((R != 0) || (!NameOnly.IsEqual("a"))) return TEnvironment::ShowTestErrorMessage(-8026, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("c:\\windows\\system\\a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, NULL, NULL, &Ext); if ((R != 0) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8028, "TFileSystem::ExtractPathParts");
+
+	R = TFileSystem::DirectoryExists("c:\\"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8029, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("c:\\windows\\"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8030, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("c:\\windows2"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8031, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("c:\\windows\\regedit.exe"); if (R != FILE_SYSTEM_ERROR_NOT_DIRECTORY) return TEnvironment::ShowTestErrorMessage(-8033, "TFileSystem::DirectoryExists");
+
+	if (TFileSystem::IsValidRelativePath("") != FILE_SYSTEM_ERROR_EMPTY) return TEnvironment::ShowTestErrorMessage(-8034, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath(".") != FILE_SYSTEM_ERROR_CURRENT) return TEnvironment::ShowTestErrorMessage(-8035, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath(".\\") != FILE_SYSTEM_ERROR_CURRENT) return TEnvironment::ShowTestErrorMessage(-8036, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("..") != FILE_SYSTEM_ERROR_PARENT) return TEnvironment::ShowTestErrorMessage(-8037, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("..\\") != FILE_SYSTEM_ERROR_PARENT) return TEnvironment::ShowTestErrorMessage(-8038, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1") != 0) return TEnvironment::ShowTestErrorMessage(-8039, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1\\") != 0) return TEnvironment::ShowTestErrorMessage(-8040, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1\\test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8041, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1\\PRN\\test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8042, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath(".\\dir1\\test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8043, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("..\\dir2\\test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8044, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1\\\\test.txt") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8045, "TFileSystem::IsValidRelativePath");
+
+	R = TFileSystem::FileExists("c:\\"); if (R != FILE_SYSTEM_ERROR_NOT_FILE) return TEnvironment::ShowTestErrorMessage(-8045, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("c:\\windows\\"); if (R != FILE_SYSTEM_ERROR_NOT_FILE) return TEnvironment::ShowTestErrorMessage(-8047, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("c:\\windows2"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8048, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("c:\\windows\\regedit.exe"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8049, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("c:\\windows\\regeditxxxxxxxxxxxxxxxxxxxxx.exe"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8050, "TFileSystem::FileExists");
+
+	if (TFileSystem::IsValidPath("C:\\Windows\\..\\test") != 0) return TEnvironment::ShowTestErrorMessage(-8051, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\.\\test") != 0) return TEnvironment::ShowTestErrorMessage(-8052, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\..\\test") != 0) return TEnvironment::ShowTestErrorMessage(-8053, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\...\\test") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8054, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("C:\\Windows\\..\\test") != 0) return TEnvironment::ShowTestErrorMessage(-8055, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidRelativePath("dir1\\...\\test.txt") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8056, "TFileSystem::IsValidRelativePath");
+
+	S1.SetValue("c:\\.\\windows"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\windows"))) return TEnvironment::ShowTestErrorMessage(-8057, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\..\\windows"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\windows"))) return TEnvironment::ShowTestErrorMessage(-8058, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\..\\windows\\system\\..\\"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\windows"))) return TEnvironment::ShowTestErrorMessage(-8059, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\..\\windows\\system\\..\\system32\\aaa"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\windows\\system32\\aaa"))) return TEnvironment::ShowTestErrorMessage(-8060, "TFileSystem::NormalizePath");
+	S1.SetValue("C:\\Users\\NullInferno\\.\\Documents\\a.txt"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Users\\NullInferno\\Documents\\a.txt"))) return TEnvironment::ShowTestErrorMessage(-8061, "TFileSystem::NormalizePath");
+	S1.SetValue("C:\\Program Files\\MyApp\\..\\Data\\file"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Program Files\\Data\\file"))) return TEnvironment::ShowTestErrorMessage(-8062, "TFileSystem::NormalizePath");
+	S1.SetValue("D:\\Games\\Steam\\.\\..\\Origin\\game.exe"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("D:\\Games\\Origin\\game.exe"))) return TEnvironment::ShowTestErrorMessage(-8063, "TFileSystem::NormalizePath");
+	S1.SetValue("C:\\Windows\\System32\\..\\Temp\\log.txt"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("C:\\Windows\\Temp\\log.txt"))) return TEnvironment::ShowTestErrorMessage(-8064, "TFileSystem::NormalizePath");
+	S1.SetValue("E:\\Projects\\Code\\..\\..\\Docs\\readme.md"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("E:\\Docs\\readme.md"))) return TEnvironment::ShowTestErrorMessage(-8065, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\"))) return TEnvironment::ShowTestErrorMessage(-8066, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\.\\"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\"))) return TEnvironment::ShowTestErrorMessage(-8067, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\..\\"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\"))) return TEnvironment::ShowTestErrorMessage(-8068, "TFileSystem::NormalizePath");
+	S1.SetValue("c:\\.\\.\\..\\"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("c:\\"))) return TEnvironment::ShowTestErrorMessage(-8069, "TFileSystem::NormalizePath");
+
+	S1.SetValue("C:\\Users\\NullInferno\\Documents"); R = TFileSystem::AppendToPath(&S1, ".\\file.txt"); if ((R != 0) || (!S1.IsEqual("C:\\Users\\NullInferno\\Documents\\file.txt"))) return TEnvironment::ShowTestErrorMessage(-8070, "TFileSystem::AppendToPath");
+	S1.SetValue("C:\\Users\\NullInferno\\Documents"); R = TFileSystem::AppendToPath(&S1, "..\\Pictures\\pic.jpg"); if ((R != 0) || (!S1.IsEqual("C:\\Users\\NullInferno\\Pictures\\pic.jpg"))) return TEnvironment::ShowTestErrorMessage(-8071, "TFileSystem::AppendToPath");
+	S1.SetValue("C:\\Program Files\\MyApp\\Config"); R = TFileSystem::AppendToPath(&S1, "..\\..\\Data\\data.db"); if ((R != 0) || (!S1.IsEqual("C:\\Program Files\\Data\\data.db"))) return TEnvironment::ShowTestErrorMessage(-8072, "TFileSystem::AppendToPath");
+	S1.SetValue("D:\\Games\\Steam\\bin"); R = TFileSystem::AppendToPath(&S1, "..\\Origin\\game.exe"); if ((R != 0) || (!S1.IsEqual("D:\\Games\\Steam\\Origin\\game.exe"))) return TEnvironment::ShowTestErrorMessage(-8073, "TFileSystem::AppendToPath");
+	S1.SetValue("C:\\Windows\\System32"); R = TFileSystem::AppendToPath(&S1, "..\\Temp\\log.txt"); if ((R != 0) || (!S1.IsEqual("C:\\Windows\\Temp\\log.txt"))) return TEnvironment::ShowTestErrorMessage(-8074, "TFileSystem::AppendToPath");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8075, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != FILE_SYSTEM_ERROR_DIRECTORY_EXISTS) return TEnvironment::ShowTestErrorMessage(-8076, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2\\tttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != FILE_SYSTEM_ERROR_PATH_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8077, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2\\tttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8078, "TFileSystem::CreateDirectory");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::IsDirectoryEmpty(S1.PChar()); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8079, "TFileSystem::IsDirectoryEmpty");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::IsDirectoryEmpty(S1.PChar()); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8080, "TFileSystem::IsDirectoryEmpty");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8081, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2\\tttt");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8082, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8083, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2\\tttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8084, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), true, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8085, "TFileSystem::DeleteDirectory");
+
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_READ_ONLY)) != FSA_READ_ONLY) return TEnvironment::ShowTestErrorMessage(-8086, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_HIDDEN)) != FSA_HIDDEN) return TEnvironment::ShowTestErrorMessage(-8087, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_SYSTEM)) != FSA_SYSTEM) return TEnvironment::ShowTestErrorMessage(-8088, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_DIRECTORY)) != FSA_DIRECTORY) return TEnvironment::ShowTestErrorMessage(-8089, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_ARCHIVE)) != FSA_ARCHIVE) return TEnvironment::ShowTestErrorMessage(-8090, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_DEVICE)) != FSA_DEVICE) return TEnvironment::ShowTestErrorMessage(-8091, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_NORMAL)) != FSA_NORMAL) return TEnvironment::ShowTestErrorMessage(-8092, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_TEMPORARY)) != FSA_TEMPORARY) return TEnvironment::ShowTestErrorMessage(-8093, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_SPARSE_FILE)) != FSA_SPARSE_FILE) return TEnvironment::ShowTestErrorMessage(-8094, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_REPARSE_POINT)) != FSA_REPARSE_POINT) return TEnvironment::ShowTestErrorMessage(-8095, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_COMPRESSED)) != FSA_COMPRESSED) return TEnvironment::ShowTestErrorMessage(-8096, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_OFFLINE)) != FSA_OFFLINE) return TEnvironment::ShowTestErrorMessage(-8097, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_NOT_CONTENT_INDEXED)) != FSA_NOT_CONTENT_INDEXED) return TEnvironment::ShowTestErrorMessage(-8098, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_ENCRYPTED)) != FSA_ENCRYPTED) return TEnvironment::ShowTestErrorMessage(-8099, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_INTEGRITY_STREAM)) != FSA_INTEGRITY_STREAM) return TEnvironment::ShowTestErrorMessage(-8100, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+	if (WindowsAttaributes2FileSystemAttributes(FileSystemAttributes2WindowsAttaributes(FSA_NO_SCRUB_DATA)) != FSA_NO_SCRUB_DATA) return TEnvironment::ShowTestErrorMessage(-8101, "WindowsAttaributes2FileSystemAttributes and FileSystemAttributes2WindowsAttaributes");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_file.txt");
+	FILE* F = fopen(S1.PChar(), "wb+"); if (F == NULL) return TEnvironment::ShowTestErrorMessage(-8102, "TFileSystem");
+	fclose(F); if (TFileSystem::FileExists(S1.PChar()) != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8103, "TFileStream::FileExists");
+	R = TFileSystem::DeleteFile(S1.PChar()); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8104, "TFileSystem::DeleteFile");
+
+	TFileSystemAttributes A;
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8105, "TFileSystem::GetFileAttributes");
+
+	F = fopen(S1.PChar(), "wb+"); fclose(F);
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8106, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::SetFileAttributes(S1.PChar(), (TFileSystemAttributes)(FSA_ARCHIVE | FSA_HIDDEN | FSA_READ_ONLY | FSA_SYSTEM)); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8107, "TFileSystem::SetFileAttributes");
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8108, "TFileSystem::GetFileAttributes");
+	if (A != (TFileSystemAttributes)(FSA_ARCHIVE | FSA_HIDDEN | FSA_READ_ONLY | FSA_SYSTEM)) return TEnvironment::ShowTestErrorMessage(-8109, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::DeleteFile(S1.PChar()); if (R != FILE_SYSTEM_ERROR_ACCESS) return TEnvironment::ShowTestErrorMessage(-8110, "TFileSystem::DeleteFile");
+	R = TFileSystem::DeleteFile(S1.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8111, "TFileSystem::DeleteFile");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8112, "TFileSystem::CreateDirectory");
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8113, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::GetDirectoryAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8114, "TFileSystem::GetDirectoryAttributes");
+	R = TFileSystem::SetDirectoryAttributes(S1.PChar(), (TFileSystemAttributes)(FSA_ARCHIVE | FSA_HIDDEN | FSA_READ_ONLY | FSA_SYSTEM)); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8115, "TFileSystem::SetDirectoryAttributes");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != FILE_SYSTEM_ERROR_ACCESS) return TEnvironment::ShowTestErrorMessage(-8116, "TFileSystem::DeleteDirectory");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8117, "TFileSystem::DeleteDirectory");
+
+#else
+	if (TFileSystem::IsValidPath("") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8001, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("x") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8002, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("/") != 0) return TEnvironment::ShowTestErrorMessage(-8003, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("//home") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8004, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("/home") != 0) return TEnvironment::ShowTestErrorMessage(-8005, "TFileSystem::IsValidPath");
+	if (TFileSystem::IsValidPath("/home/") != 0) return TEnvironment::ShowTestErrorMessage(-8006, "TFileSystem::IsValidPath");
+
+	S1.SetValue("/"); R = TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8007, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("/home"); TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/home/"))) return TEnvironment::ShowTestErrorMessage(-8008, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("/home/"); TFileSystem::AppendPathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/home/"))) return TEnvironment::ShowTestErrorMessage(-8009, "TFileSystem::AppendPathSeparator");
+	S1.SetValue("/"); TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8010, "TFileSystem::RemovePathSeparator");
+	S1.SetValue("/home"); TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/home"))) return TEnvironment::ShowTestErrorMessage(-8011, "TFileSystem::RemovePathSeparator");
+	S1.SetValue("/home/"); TFileSystem::RemovePathSeparator(&S1); if ((R != 0) || (!S1.IsEqual("/home"))) return TEnvironment::ShowTestErrorMessage(-8012, "TFileSystem::RemovePathSeparator");
+
+	S1.SetValue("/"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("/")) || (!Name.IsEqual("")) || (!NameOnly.IsEqual("")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8013, "TFileSystem::ExtractPathParts");
+	S1.SetValue("/home"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("/")) || (!Name.IsEqual("home")) || (!NameOnly.IsEqual("home")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8014, "TFileSystem::ExtractPathParts");
+	S1.SetValue("/home/"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("/")) || (!Name.IsEqual("home")) || (!NameOnly.IsEqual("home")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8015, "TFileSystem::ExtractPathParts");
+	S1.SetValue("/home/user"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("/home")) || (!Name.IsEqual("user")) || (!NameOnly.IsEqual("user")) || (!Ext.IsEqual(""))) return TEnvironment::ShowTestErrorMessage(-8016, "TFileSystem::ExtractPathParts");
+	S1.SetValue("/home/user/a.txt"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); if ((R != 0) || (!Path.IsEqual("/home/user")) || (!Name.IsEqual("a.txt")) || (!NameOnly.IsEqual("a")) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8017, "TFileSystem::ExtractPathParts");
+	S1.SetValue("/home/user/a.txt/"); R = TFileSystem::ExtractPathParts(&S1, &Path, &Name, &NameOnly, &Ext); 
+	if ((R != 0) || (!Path.IsEqual("/home/user")) || (!Name.IsEqual("a.txt")) || (!NameOnly.IsEqual("a")) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8018, "TFileSystem::ExtractPathParts");
+
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("/home/user/a.txt"); R = TFileSystem::ExtractPathParts(&S1, &Path, NULL, NULL, NULL); if ((R != 0) || (!Path.IsEqual("/home/user"))) return TEnvironment::ShowTestErrorMessage(-8019, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("/home/user/a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, &Name, NULL, NULL); if ((R != 0) || (!Name.IsEqual("a.txt"))) return TEnvironment::ShowTestErrorMessage(-8020, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("/home/user/a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, NULL, &NameOnly, NULL); if ((R != 0) || (!NameOnly.IsEqual("a"))) return TEnvironment::ShowTestErrorMessage(-8021, "TFileSystem::ExtractPathParts");
+	Path.SetLength(0); Name.SetLength(0); NameOnly.SetLength(0); Ext.SetLength(0);
+	S1.SetValue("/home/user/a.txt"); R = TFileSystem::ExtractPathParts(&S1, NULL, NULL, NULL, &Ext); if ((R != 0) || (!Ext.IsEqual("txt"))) return TEnvironment::ShowTestErrorMessage(-8022, "TFileSystem::ExtractPathParts");
+
+	if (TFileSystem::IsValidRelativePath("") != FILE_SYSTEM_ERROR_EMPTY) return TEnvironment::ShowTestErrorMessage(-8023, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath(".") != FILE_SYSTEM_ERROR_CURRENT) return TEnvironment::ShowTestErrorMessage(-8024, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("./") != FILE_SYSTEM_ERROR_CURRENT) return TEnvironment::ShowTestErrorMessage(-8025, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("..") != FILE_SYSTEM_ERROR_PARENT) return TEnvironment::ShowTestErrorMessage(-8026, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("../") != FILE_SYSTEM_ERROR_PARENT) return TEnvironment::ShowTestErrorMessage(-8027, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1") != 0) return TEnvironment::ShowTestErrorMessage(-8028, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1/") != 0) return TEnvironment::ShowTestErrorMessage(-8029, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1/test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8030, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1/PRN/test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8031, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("./dir1/test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8032, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("../dir2/test.txt") != 0) return TEnvironment::ShowTestErrorMessage(-8033, "TFileSystem::IsValidRelativePath");
+	if (TFileSystem::IsValidRelativePath("dir1//test.txt") != FILE_SYSTEM_ERROR_FORBIDDEN_CHAR) return TEnvironment::ShowTestErrorMessage(-8034, "TFileSystem::IsValidRelativePath");
+
+	R = TFileSystem::DirectoryExists("/"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8035, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("/home"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8036, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("/home/"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8037, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("/home2"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8038, "TFileSystem::DirectoryExists");
+	R = TFileSystem::DirectoryExists("/etc/netconfig"); if (R != FILE_SYSTEM_ERROR_NOT_DIRECTORY) return TEnvironment::ShowTestErrorMessage(-8039, "TFileSystem::DirectoryExists");
+
+	R = TFileSystem::FileExists("/"); if (R != FILE_SYSTEM_ERROR_NOT_FILE) return TEnvironment::ShowTestErrorMessage(-8040, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("/home"); if (R != FILE_SYSTEM_ERROR_NOT_FILE) return TEnvironment::ShowTestErrorMessage(-8041, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("/home/"); if (R != FILE_SYSTEM_ERROR_NOT_FILE) return TEnvironment::ShowTestErrorMessage(-8042, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("/home2"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8043, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("/etc/netconfig"); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8044, "TFileSystem::FileExists");
+	R = TFileSystem::FileExists("/etc/netconfigasasasasassasasasa"); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8045, "TFileSystem::FileExists");
+
+	S1.SetValue("/"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8046, "TFileSystem::NormalizePath");
+	S1.SetValue("/./"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8047, "TFileSystem::NormalizePath (%s)", S1.PChar());
+	S1.SetValue("/../"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8048, "TFileSystem::NormalizePath");
+	S1.SetValue("/././../"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/"))) return TEnvironment::ShowTestErrorMessage(-8049, "TFileSystem::NormalizePath");
+
+	S1.SetValue("/home/user/./docs/file.txt"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/home/user/docs/file.txt"))) return TEnvironment::ShowTestErrorMessage(-8050, "TFileSystem::NormalizePath");
+	S1.SetValue("/home/user/projects/../docs/a"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/home/user/docs/a"))) return TEnvironment::ShowTestErrorMessage(-8051, "TFileSystem::NormalizePath");
+	S1.SetValue("/etc/init.d/./../passwd"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/etc/passwd"))) return TEnvironment::ShowTestErrorMessage(-8052, "TFileSystem::NormalizePath");
+	S1.SetValue("/var/log/../tmp/./cache"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/var/tmp/cache"))) return TEnvironment::ShowTestErrorMessage(-8053, "TFileSystem::NormalizePath");
+	S1.SetValue("/usr/local/bin/../../lib/libc"); R = TFileSystem::NormalizePath(&S1); if ((R != 0) || (!S1.IsEqual("/usr/lib/libc"))) return TEnvironment::ShowTestErrorMessage(-8054, "TFileSystem::NormalizePath");
+
+	S1.SetValue("/home/user/docs"); R = TFileSystem::AppendToPath(&S1, "./file.txt"); if ((R != 0) || (!S1.IsEqual("/home/user/docs/file.txt"))) return TEnvironment::ShowTestErrorMessage(-8055, "TFileSystem::AppendToPath");
+	S1.SetValue("/home/user/docs"); R = TFileSystem::AppendToPath(&S1, "../images/pic.png"); if ((R != 0) || (!S1.IsEqual("/home/user/images/pic.png"))) return TEnvironment::ShowTestErrorMessage(-8056, "TFileSystem::AppendToPath");
+	S1.SetValue("/etc/nginx/conf.d"); R = TFileSystem::AppendToPath(&S1, "../../passwd"); if ((R != 0) || (!S1.IsEqual("/etc/passwd"))) return TEnvironment::ShowTestErrorMessage(-8057, "TFileSystem::AppendToPath");
+	S1.SetValue("/var/log"); R = TFileSystem::AppendToPath(&S1, "./../tmp/cache"); if ((R != 0) || (!S1.IsEqual("/var/tmp/cache"))) return TEnvironment::ShowTestErrorMessage(-8058, "TFileSystem::AppendToPath");
+	S1.SetValue("/usr/local/bin"); R = TFileSystem::AppendToPath(&S1, "../lib/libc.so"); if ((R != 0) || (!S1.IsEqual("/usr/local/lib/libc.so"))) return TEnvironment::ShowTestErrorMessage(-8059, "TFileSystem::AppendToPath");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8060, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2/ttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != FILE_SYSTEM_ERROR_PATH_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8061, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2/tttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8062, "TFileSystem::CreateDirectory");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::IsDirectoryEmpty(S1.PChar()); if (R != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8063, "TFileSystem::IsDirectoryEmpty");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::IsDirectoryEmpty(S1.PChar()); if (R != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8064, "TFileSystem::IsDirectoryEmpty");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8065, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2/tttt");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8066, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8067, "TFileSystem::DeleteDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2/tttt");
+	R = TFileSystem::CreateDirectory(S1.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8068, "TFileSystem::CreateDirectory");
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir2");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), true, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8069, "TFileSystem::DeleteDirectory");
+
+	UINT32 Attr, Chmod, Ext2Attr;
+	
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IRUSR, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IRUSR) return TEnvironment::ShowTestErrorMessage(-8070, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IWUSR, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IWUSR) return TEnvironment::ShowTestErrorMessage(-8071, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IXUSR, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IXUSR) return TEnvironment::ShowTestErrorMessage(-8072, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IRGRP, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IRGRP) return TEnvironment::ShowTestErrorMessage(-8073, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IWGRP, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IWGRP) return TEnvironment::ShowTestErrorMessage(-8074, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IXGRP, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IXGRP) return TEnvironment::ShowTestErrorMessage(-8075, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IROTH, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IROTH) return TEnvironment::ShowTestErrorMessage(-8076, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IWOTH, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IWOTH) return TEnvironment::ShowTestErrorMessage(-8077, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_IXOTH, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_IXOTH) return TEnvironment::ShowTestErrorMessage(-8078, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_ISUID, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_ISUID) return TEnvironment::ShowTestErrorMessage(-8079, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_ISGID, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_ISGID) return TEnvironment::ShowTestErrorMessage(-8080, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+	FileSystemAttributes2LinuxAttaributes(FSA_S_ISVTX, &Attr, &Chmod, &Ext2Attr); if (LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr) != FSA_S_ISVTX) return TEnvironment::ShowTestErrorMessage(-8081, "LinuxAttaributes2FileSystemAttributes and FileSystemAttributes2LinuxAttaributes");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_file.txt");
+	FILE* F = fopen(S1.PChar(), "wb+"); if (F == NULL) return TEnvironment::ShowTestErrorMessage(-8082, "TFileSystem");
+	fclose(F); if (TFileSystem::FileExists(S1.PChar()) != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8083, "TFileStream::FileExists");
+	R = TFileSystem::DeleteFile(S1.PChar()); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8084, "TFileSystem::DeleteFile");
+
+	TFileSystemAttributes A;
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8085, "TFileSystem::GetFileAttributes");
+
+	F = fopen(S1.PChar(), "wb+"); fclose(F);
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8086, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::SetFileAttributes(S1.PChar(), (TFileSystemAttributes)(FSA_S_IRUSR | FSA_S_IWUSR | FSA_S_IXUSR | FSA_S_IRGRP | FSA_S_IWGRP | FSA_S_IXGRP | FSA_S_IROTH | FSA_S_IWOTH | FSA_S_IXOTH | FSA_S_ISUID | FSA_S_ISGID | FSA_S_ISVTX)); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8087, "TFileSystem::SetFileAttributes");
+	R = TFileSystem::GetFileAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8088, "TFileSystem::GetFileAttributes");
+	if (A != (TFileSystemAttributes)(FSA_S_IFREG | FSA_S_IRUSR | FSA_S_IWUSR | FSA_S_IXUSR | FSA_S_IRGRP | FSA_S_IWGRP | FSA_S_IXGRP | FSA_S_IROTH | FSA_S_IWOTH | FSA_S_IXOTH | FSA_S_ISUID | FSA_S_ISGID | FSA_S_ISVTX)) return TEnvironment::ShowTestErrorMessage(-8089, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::DeleteFile(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8090, "TFileSystem::DeleteFile");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_dir");
+	R = TFileSystem::CreateDirectory(S1.PChar(), false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8091, "TFileSystem::CreateDirectory");
+	R = TFileSystem::GetDirectoryAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8092, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::SetDirectoryAttributes(S1.PChar(), (TFileSystemAttributes)(FSA_S_IRUSR | FSA_S_IWUSR | FSA_S_IXUSR | FSA_S_IRGRP | FSA_S_IWGRP | FSA_S_IXGRP | FSA_S_IROTH | FSA_S_IWOTH | FSA_S_IXOTH | FSA_S_ISUID | FSA_S_ISGID | FSA_S_ISVTX)); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8093, "TFileSystem::SetFileAttributes");
+	R = TFileSystem::GetDirectoryAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8094, "TFileSystem::GetFileAttributes");
+	if (A != (TFileSystemAttributes)(FSA_S_IFDIR | FSA_S_IRUSR | FSA_S_IWUSR | FSA_S_IXUSR | FSA_S_IRGRP | FSA_S_IWGRP | FSA_S_IXGRP | FSA_S_IROTH | FSA_S_IWOTH | FSA_S_IXOTH | FSA_S_ISUID | FSA_S_ISGID | FSA_S_ISVTX)) return TEnvironment::ShowTestErrorMessage(-8095, "TFileSystem::GetFileAttributes");
+	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8096, "TFileSystem::DeleteDirectory");
+#endif
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
+//  Run validity tests for TFileStream
+//	Input:
+//			none
+//	Output:
+//			true / false
+//	................................................................................................
+BOOL RunValidityTests_TFileStream(void) {
+
+	TFileStream FS;
+	INT32 R;
+	INT64 R64;
+
+	TString S1;
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "test_filestream.dat");
+
+	R = FS.Open(S1.PChar(), AM_READ, OM_CREATE_NEW, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9001, "TFileStream::Open");
+	FS.Close(); 
+	R = FS.Open(S1.PChar(), AM_READ, OM_CREATE_NEW, CM_BINARY); if (R != FILE_SYSTEM_ERROR_FILE_EXISTS) return TEnvironment::ShowTestErrorMessage(-9002, "TFileStream::Open");
+	R = FS.Open(S1.PChar(), AM_READ, OM_CREATE_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9003, "TFileStream::Open");
+	FS.Close(); TFileSystem::DeleteFile(S1.PChar());
+
+	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_EXISTING, CM_BINARY); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-9004, "TFileStream::Open");
+	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9005, "TFileStream::Open");
+	FS.Close(); TFileSystem::DeleteFile(S1.PChar());
+	R = FS.Open(S1.PChar(), AM_READ, OM_APPEND_TO_END, CM_BINARY); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-9006, "TFileStream::Open");
+	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9007, "TFileStream::Open");
+	FS.Close();
+	R = FS.Open(S1.PChar(), AM_READ, OM_APPEND_TO_END, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9008, "TFileStream::Open");
+	FS.Close();
+
+	TBytes B1; B1.SetRandomBytes(256);
+	TBytes B2;
+
+	R = FS.Open(S1.PChar(), AM_READ, OM_CREATE_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9009, "TFileStream::Open");
+	R64 = FS.Write(&B1, 0, -1); if (R64 != 256) return TEnvironment::ShowTestErrorMessage(-9010, "TFileStream::Write");
+	if ((FS.GetSize() != 256) || (FS.GetPosition() != 256) || (!FS.IsEOF())) return TEnvironment::ShowTestErrorMessage(-9011, "TFileStream::GetSize, GetPosition, IsEOF");
+	if (!FS.Rewind()) return TEnvironment::ShowTestErrorMessage(-9012, "TFileStream::Rewind");
+	if ((FS.GetSize() != 256) || (FS.GetPosition() != 0) || (FS.IsEOF())) return TEnvironment::ShowTestErrorMessage(-9013, "TFileStream::GetSize, GetPosition, IsEOF");
+	B2.Release(); R64 = FS.Read(&B2, 0, 1024); if (R64 != 256) return TEnvironment::ShowTestErrorMessage(-9014, "TFileStream::Read");
+	if (B1.Compare(&B2, 0, -1) != 0) return TEnvironment::ShowTestErrorMessage(-9015, "TFileStream::Read");
+	if ((FS.GetSize() != 256) || (FS.GetPosition() != 256) || (!FS.IsEOF())) return TEnvironment::ShowTestErrorMessage(-9016, "TFileStream::GetSize, GetPosition, IsEOF");
+	R64 = FS.Seek(100, TStreamSeekOrigin::SO_BEGIN); if (R64 != 100) return TEnvironment::ShowTestErrorMessage(-9017, "TFileStream::Seek");
+	if ((FS.GetSize() != 256) || (FS.GetPosition() != 100) || (FS.IsEOF())) return TEnvironment::ShowTestErrorMessage(-9018, "TFileStream::GetSize, GetPosition, IsEOF");
+	B2.Release(); R64 = FS.Read(&B2, 0, 1024); if (R64 != 156) return TEnvironment::ShowTestErrorMessage(-9019, "TFileStream::Read");
+	if (B1.Compare(&B2, 100, 156) != 0) return TEnvironment::ShowTestErrorMessage(-9020, "TFileStream::Read");
+	FS.Close();
+
+	if (TFileSystem::FileExists(S1.PChar(), false) != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-9021, "TFileStream::FileExists");
+	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_EXISTING, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9022, "TFileStream::Open");
+	FS.CloseAndDelete(); // close and delete the file
+	if (TFileSystem::FileExists(S1.PChar(), false) != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-9023, "TFileStream::FileExists");
+
+	return true; // all tests passed
+}
+//	................................................................................................
+
+//	................................................................................................
 //  Run all validity tests
 //	Input:
 //			none
@@ -1270,6 +1663,14 @@ BOOL RunAllValidityTests(INT32 iArgc, PCHAR* iArgs) {
 
 	printf("\n\tRunning tests - TCommandLineParser... ");
 	if (!RunValidityTests_TCommandLineParser(iArgc, iArgs)) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TFileSystem... ");
+	if (!RunValidityTests_TFileSystem()) return false;
+	printf("OK.");
+
+	printf("\n\tRunning tests - TFileStream... ");
+	if (!RunValidityTests_TFileStream()) return false;
 	printf("OK.");
 
 	return true; // all tests passed

@@ -25,6 +25,8 @@ SRCS_LIB = TEnvironment.cpp \
 			TBinaryWriter.cpp \
 			TBinaryReader.cpp \
 			TCommandLineParser.cpp \
+			TFileStream.cpp \
+			TFileSystem.cpp
 
 OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
 OBJDIR_TESTER = /home/nullinferno/projects/NullInfernoCore/objs

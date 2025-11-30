@@ -155,6 +155,8 @@
     <ClInclude Include="TCommandLineParser.h" />
     <ClInclude Include="TDateTime.h" />
     <ClInclude Include="TEnvironment.h" />
+    <ClInclude Include="TFileStream.h" />
+    <ClInclude Include="TFileSystem.h" />
     <ClInclude Include="TList.h" />
     <ClInclude Include="TMemoryStream.h" />
     <ClInclude Include="TParamsList.h" />
@@ -171,6 +173,8 @@
     <ClCompile Include="TCommandLineParser.cpp" />
     <ClCompile Include="TDateTime.cpp" />
     <ClCompile Include="TEnvironment.cpp" />
+    <ClCompile Include="TFileStream.cpp" />
+    <ClCompile Include="TFileSystem.cpp" />
     <ClCompile Include="TList.cpp" />
     <ClCompile Include="TMemoryStream.cpp" />
     <ClCompile Include="TParamsList.cpp" />

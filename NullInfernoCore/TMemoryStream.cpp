@@ -189,6 +189,16 @@ void TMemoryStream::Close(void) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Flush the stream
+//	Input:
+// 			none
+//	Output:
+//			none
+//	...............................................................................................
+void TMemoryStream::Flush(void) {
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
@@ -227,16 +237,23 @@ INT64 TMemoryStream::Read(PVOID oBuffer, INT64 iBytesToRead) {
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
+// 			iStartIndex - start index in the output buffer
 // 			iBytesToRead - number of bytes to read
 //	Output:
 //			real number of bytes readed or -1 on error
 //	...............................................................................................
-INT64 TMemoryStream::Read(TBytes* oBuffer, INT64 iBytesToRead) {
-	if (oBuffer == NULL) return -1; // Invalid output buffer
-	if (!oBuffer->Reallocate(iBytesToRead, false)) return -1; // Reallocate output buffer
-	INT64 L = Read((PVOID)oBuffer->PByte(), iBytesToRead); // Read bytes into the output buffer
-	if (L >= 0) oBuffer->SetCount(L); // Update input buffer count
-	return L; // Return number of bytes written
+INT64 TMemoryStream::Read(TBytes* oBuffer, INT64 iStartIndex, INT64 iBytesToRead) {
+	if (oBuffer == NULL) return -1; // invalid output buffer
+
+	if (iStartIndex < 0) iStartIndex = 0; // correct start index
+	if (iStartIndex > oBuffer->Count) iStartIndex = oBuffer->Count; // correct start index
+
+	if (iStartIndex + iBytesToRead > oBuffer->Count) { // need to expand output buffer?
+		if (!oBuffer->Reallocate(iStartIndex + iBytesToRead, true)) return -1; // cannot reallocate output buffer
+	}
+	INT64 R = Read((PVOID)(oBuffer->PByte() + iStartIndex), iBytesToRead); // read bytes to the output buffer
+	if (R + iStartIndex > oBuffer->Count) oBuffer->Count = iStartIndex + R; // update output buffer count
+	return R; // return number of bytes readed
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -286,13 +303,16 @@ INT64 TMemoryStream::Write(CONST_PVOID iBuffer, INT64 iBytesToWrite) {
 //	Write bytes to the stream
 //	Input:
 // 			iBuffer - input buffer
+// 			iStartIndex - start index in the input buffer
 // 			iBytesToWrite - number of bytes to write or <0 to write the whole buffer
 //	Output:
 //			real number of bytes written or -1 on error
 //	...............................................................................................
-INT64 TMemoryStream::Write(TBytes* iBuffer, INT64 iBytesToWrite) {
+INT64 TMemoryStream::Write(TBytes* iBuffer, INT64 iStartIndex, INT64 iBytesToWrite) {
 	if (iBuffer == NULL) return -1; // Invalid input buffer
-	return Write(iBuffer->PByte(), iBytesToWrite < 0 ? iBuffer->Count : MIN(iBuffer->Count, iBytesToWrite)); // Write bytes from the input buffer
+	if (iStartIndex < 0 || iStartIndex >= iBuffer->Count) return -1; // Invalid start index
+	INT64 BytesToWrite = iBytesToWrite < 0 ? iBuffer->Count - iStartIndex : MIN(iBytesToWrite, iBuffer->Count - iStartIndex); // Calculate bytes to write
+	return Write(iBuffer->PByte() + iStartIndex, BytesToWrite); // Write bytes from the input buffer
 }
 //	...............................................................................................
 //	...............................................................................................

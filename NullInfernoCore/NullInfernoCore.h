@@ -28,6 +28,10 @@
 #include <locale.h>
 #include <emmintrin.h>
 #include <stdint.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <dirent.h>
 #endif
 
 #ifdef WINDOWS_SYSTEM
@@ -172,6 +176,8 @@ class TMemoryStream;
 class TBinaryReader;
 class TBinaryWriter;
 class TCommandLineParser;
+class TFileSystem;
+class TFileStream;
 
 // Include other headers
 
@@ -188,6 +194,8 @@ class TCommandLineParser;
 #include "TBinaryReader.h"
 #include "TBinaryWriter.h"
 #include "TCommandLineParser.h"
+#include "TFileSystem.h"
+#include "TFileStream.h"
 
 // Macros
 
@@ -217,12 +225,25 @@ class TCommandLineParser;
 
 // Standard functions declarations
 
+#ifdef WINDOWS_SYSTEM
+#define FNC_STRCASECMP _stricmp
+#define FNC_STRNCASECMP _strnicmp
+#define FNC_FSEEK _fseeki64
+#define FNC_FTELL _ftelli64
+#else
+#define FNC_STRCASECMP strcasecmp
+#define FNC_STRNCASECMP strncasecmp
+#define FNC_FSEEK fseeko
+#define FNC_FTELL ftello
+#endif
+
 #define FNC_PRINTF printf
 #define FNC_STRLEN strlen
 #define FNC_SPRINTF sprintf
 #define FNC_SNPRINTF snprintf
 #define FNC_VPRINTF vprintf
 #define FNC_STRCMP strcmp
+#define FNC_STRNCMP strncmp
 #define FNC_MEMCPY memcpy
 #define FNC_MEMSET memset
 #define FNC_SSCANF sscanf

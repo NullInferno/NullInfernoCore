@@ -106,6 +106,16 @@ void TBinaryReader::Close(void) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Flush the stream
+//	Input:
+// 			none
+//	Output:
+//			none
+//	...............................................................................................
+void TBinaryReader::Flush(void) {
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
@@ -121,12 +131,13 @@ INT64 TBinaryReader::Read(PVOID oBuffer, INT64 iBytesToRead) {
 //	Read bytes from the stream
 //	Input:
 // 			oBuffer - output buffer
+// 			iStartIndex - start index in the buffer
 // 			iBytesToRead - number of bytes to read
 //	Output:
 //			real number of bytes readed or -1 on error
 //	...............................................................................................
-INT64 TBinaryReader::Read(TBytes* oBuffer, INT64 iBytesToRead) {
-	return FStream == NULL ? -1 : FStream->Read(oBuffer, iBytesToRead);
+INT64 TBinaryReader::Read(TBytes* oBuffer, INT64 iStartIndex, INT64 iBytesToRead) {
+	return FStream == NULL ? -1 : FStream->Read(oBuffer, iStartIndex, iBytesToRead);
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -145,11 +156,12 @@ INT64 TBinaryReader::Write(CONST_PVOID iBuffer, INT64 iBytesToWrite) {
 //	Write bytes to the stream
 //	Input:
 // 			iBuffer - input buffer
+// 			iStartIndex - start index in the buffer
 // 			iBytesToWrite - number of bytes to write
 //	Output:
 //			real number of bytes written or -1 on error
 //	...............................................................................................
-INT64 TBinaryReader::Write(TBytes* iBuffer, INT64 iBytesToWrite) {
+INT64 TBinaryReader::Write(TBytes* iBuffer, INT64 iStartIndex, INT64 iBytesToWrite) {
 	return -1;
 }
 //	...............................................................................................
