@@ -234,6 +234,20 @@ INT64 TFileStream::Write(TBytes* iBuffer, INT64 iStartIndex, INT64 iBytesToWrite
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Write formatted string to the stream
+//	Input:
+// 			iValue - string value to write
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TFileStream::WriteStringLine(TString* iValue) {
+	if ((iValue != NULL) && (iValue->Length > 0)) {
+		if (Write(iValue->PChar(), iValue->Length) != iValue->Length) return false; // write string
+	}
+	return Write("\n", 1) == 1; // write newline
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Seek to position in the stream
 //	Input:
 // 			iOffset - offset to seek
@@ -354,8 +368,8 @@ INT32 TFileStream::Open(CONST_PCHAR iFilePath, TFileStreamAccessMode iAccessMode
 			if (F == NULL) return FILE_SYSTEM_ERROR_FILE_OPEN; // cannot open file
 		} break;
 		case OM_APPEND_TO_END: {
-			if (FER == FILE_SYSTEM_FALSE) return FILE_SYSTEM_ERROR_FILE_NOT_EXISTS; // file not exists
-			F = fopen(iFilePath, (iContentMode == CM_TEXT) ? "rt+" : "rb+"); // open existing
+			if (FER == FILE_SYSTEM_TRUE) F = fopen(iFilePath, (iContentMode == CM_TEXT) ? "rt+" : "rb+"); // open existing
+			else F = fopen(iFilePath, (iContentMode == CM_TEXT) ? "wt+" : "wb+"); // open existing
 			if (F == NULL) return FILE_SYSTEM_ERROR_FILE_OPEN; // cannot open file
 			if (FNC_FSEEK(F, 0, SEEK_END) != 0) { // seek to end
 				fclose(F);
@@ -372,5 +386,45 @@ INT32 TFileStream::Open(CONST_PCHAR iFilePath, TFileStreamAccessMode iAccessMode
 	FContentMode = iContentMode;
 	FFilePath.SetValue(iFilePath); // save file path
 	return 0; // OK
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Append a string line to a text file 
+//	Input:
+// 			iFilePath - file path
+// 			iValue - string to append
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TFileStream::AppendStringLineToFile(CONST_PCHAR iFilePath, TString* iValue) {
+	TFileStream FS; // create file stream
+	if (FS.Open(iFilePath, AM_WRITE, OM_APPEND_TO_END, CM_TEXT) != 0) return false; // cannot create file
+
+	BOOL B = FS.Write(iValue->PChar(), iValue->Length) >= 0; // write string
+	
+	if (B) { // sucess?
+		CONST_PCHAR NewLine = "\n"; // new line characters
+		B = FS.Write(NewLine, 1) >= 0; // write new line
+	}
+
+	FS.Close(); // close file stream
+
+	return B; // return result
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Create an empty file
+//	Input:
+// 			iFilePath - file path
+//	Output:
+//			true / false
+//	...............................................................................................
+BOOL TFileStream::CreateEmptyFile(CONST_PCHAR iFilePath) {
+
+	TFileStream FS; // create file stream
+	if (FS.Open(iFilePath, AM_WRITE, OM_CREATE_ALWAYS, CM_BINARY) != 0) return false; // cannot create file
+	FS.Close(); // close file stream
+
+	return true; // OK
 }
 //	...............................................................................................

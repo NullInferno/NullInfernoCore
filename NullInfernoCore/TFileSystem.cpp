@@ -722,6 +722,74 @@ INT32 TFileSystem::AppendToPath(TString* ioPath, CONST_PCHAR iValue, BOOL iCheck
 }
 //	................................................................................................
 //	................................................................................................
+//  Create a full file path from directory path, file name and file extension
+//	Input:
+//			oResult - output full file path
+//			iPath - directory path
+// 			iFileNameOnly - file name without extension
+// 			iExt - file extension
+//	Output:
+//			0 or error code
+//	................................................................................................
+INT32 TFileSystem::CreateFullPath(TString* oResult, CONST_PCHAR iPath, CONST_PCHAR iFileNameOnly, CONST_PCHAR iExt) {
+	INT32 R = IsValidPath(iPath); // check path validity
+	if (R != 0) return R; // invalid path?
+
+	oResult->SetValue(iPath); // set initial path
+	AppendPathSeparator(oResult); // append path separator if it does not exist
+	
+	if (IS_PCHAR_EMPTY(iFileNameOnly)) {
+		if (IS_PCHAR_EMPTY(iExt)) return 0;
+		oResult->AppendChars('.', 1); // append dot for extension
+		oResult->AppendValue(iExt); // append extension
+		return 0;
+	}
+	oResult->AppendValue(iFileNameOnly); // append file name
+	if (IS_PCHAR_EMPTY(iExt)) return 0;
+	oResult->AppendChars('.', 1); // append dot for extension
+	oResult->AppendValue(iExt); // append extension
+	return 0;
+}
+//	................................................................................................
+//	................................................................................................
+//  Append file extension to file name
+//	Input:
+//			ioFileName - input/output file name
+//			iExt - file extension
+//	Output:
+//			0 or error code
+//	................................................................................................
+void TFileSystem::ApppendExt(TString* ioFileName, CONST_PCHAR iExt) {
+	TString N, E;
+	INT32 R = ExtractPathParts(ioFileName, NULL, NULL, &N, &E, false); // extract file name and extension
+	if ((R != 0) || (E.IsEmpty())) {
+		ioFileName->AppendChars('.', 1); // append dot for extension
+		ioFileName->AppendValue(iExt); // append extension
+	}
+}
+//	................................................................................................
+//	................................................................................................
+//  Get current working directory
+//	Input:
+//			oDirectoryPath - output directory path
+//	Output:
+//			none
+//	................................................................................................
+void TFileSystem::GetCurrentDirectory(TString* oDirectoryPath) {
+	oDirectoryPath->Reallocate(MAX_PATH_LENGTH + 1, false); // allocate buffer
+#ifdef WINDOWS_SYSTEM
+	UINT32 L = ::GetCurrentDirectoryA(MAX_PATH_LENGTH, oDirectoryPath->Value);
+	oDirectoryPath->Value[oDirectoryPath->Length = L] = 0;
+#else
+	if (getcwd(oDirectoryPath->Value, MAX_PATH_LENGTH) == NULL) {
+		oDirectoryPath->Length = 0;
+		return;
+	}
+	oDirectoryPath->Length = FNC_STRLEN(oDirectoryPath->Value);
+#endif
+}
+//	................................................................................................
+//	................................................................................................
 //  Create a directory
 //	Input:
 //			iDirectoryPath - directory path
@@ -813,7 +881,7 @@ INT32 TFileSystem::DirectoryExists(CONST_PCHAR iDirectoryPath, BOOL iCheckPath) 
 
 	TString S(iDirectoryPath); RemovePathSeparator(&S); // remove trailing path separator if it exists
 
-	UINT32 Attributes = ::GetFileAttributes(S.PChar());
+	UINT32 Attributes = ::GetFileAttributesA(S.PChar());
 	if (Attributes == INVALID_FILE_ATTRIBUTES) return FILE_SYSTEM_FALSE; // cannot get attributes
 	return ((Attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) ? FILE_SYSTEM_TRUE : FILE_SYSTEM_ERROR_NOT_DIRECTORY; // not a directory
 #else
@@ -906,7 +974,7 @@ INT32 TFileSystem::DeleteDirectory(CONST_PCHAR iDirectoryPath, BOOL iRecursive, 
 #ifdef WINDOWS_SYSTEM
 
 	if (!iRecursive) {
-		if (iForceDelete) ::SetFileAttributes(iDirectoryPath, FILE_ATTRIBUTE_NORMAL); // set normal attributes
+		if (iForceDelete) ::SetFileAttributesA(iDirectoryPath, FILE_ATTRIBUTE_NORMAL); // set normal attributes
 
 		if (::RemoveDirectoryA(iDirectoryPath) != 0) return 0; // directory removed successfully
 		switch (GetLastError()) {
@@ -1029,7 +1097,7 @@ INT32 TFileSystem::FileExists(CONST_PCHAR iFilePath, BOOL iCheckPath) {
 
 	TString S(iFilePath); RemovePathSeparator(&S); // remove trailing path separator if it exists
 
-	UINT32 Attributes = ::GetFileAttributes(S.PChar());
+	UINT32 Attributes = ::GetFileAttributesA(S.PChar());
 	if (Attributes == INVALID_FILE_ATTRIBUTES) return FILE_SYSTEM_FALSE; // cannot get attributes
 	return ((Attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) ? FILE_SYSTEM_TRUE : FILE_SYSTEM_ERROR_NOT_FILE; // not a directory
 #else
@@ -1054,7 +1122,7 @@ INT32 TFileSystem::DeleteFile(CONST_PCHAR iFilePath, BOOL iForceDelete, BOOL iCh
 		if (R != 0) return R; // invalid path?
 	}
 #ifdef WINDOWS_SYSTEM
-	if (iForceDelete) ::SetFileAttributes(iFilePath, FILE_ATTRIBUTE_NORMAL); // set normal attributes
+	if (iForceDelete) ::SetFileAttributesA(iFilePath, FILE_ATTRIBUTE_NORMAL); // set normal attributes
 	if (::DeleteFileA(iFilePath) != 0) return 0; // file deleted successfully
 	INT32 LE = GetLastError();
 	switch (LE) {
@@ -1101,7 +1169,7 @@ INT32 TFileSystem::GetFileAttributes(CONST_PCHAR iPath, TFileSystemAttributes* o
 		if (R != 0) return R; // invalid path?
 	}
 #ifdef WINDOWS_SYSTEM
-	UINT32 A = ::GetFileAttributes(iPath); // get attributes
+	UINT32 A = ::GetFileAttributesA(iPath); // get attributes
 	if (A != INVALID_FILE_ATTRIBUTES) {
 		if ((A & FILE_ATTRIBUTE_DIRECTORY) != 0) return FILE_SYSTEM_ERROR_FILE_NOT_EXISTS;
 		*oAttr = WindowsAttaributes2FileSystemAttributes(A); // convert and return
@@ -1156,7 +1224,7 @@ INT32 TFileSystem::SetFileAttributes(CONST_PCHAR iPath, TFileSystemAttributes iA
 		if (R != 0) return R; // invalid path?
 	}
 #ifdef WINDOWS_SYSTEM
-	if (::SetFileAttributes(iPath, FileSystemAttributes2WindowsAttaributes(iAttr)) != 0) return 0; // set attributes
+	if (::SetFileAttributesA(iPath, FileSystemAttributes2WindowsAttaributes(iAttr)) != 0) return 0; // set attributes
 	switch (GetLastError()) {
 		case ERROR_FILE_NOT_FOUND:
 			return FILE_SYSTEM_ERROR_FILE_NOT_EXISTS; // path not found?
@@ -1200,7 +1268,7 @@ INT32 TFileSystem::GetDirectoryAttributes(CONST_PCHAR iPath, TFileSystemAttribut
 		if (R != 0) return R; // invalid path?
 	}
 #ifdef WINDOWS_SYSTEM
-	UINT32 A = ::GetFileAttributes(iPath); // get attributes
+	UINT32 A = ::GetFileAttributesA(iPath); // get attributes
 	if (A != INVALID_FILE_ATTRIBUTES) {
 		if ((A & FILE_ATTRIBUTE_DIRECTORY) == 0) return FILE_SYSTEM_ERROR_DIRECTORY_NOT_EXISTS;
 		*oAttr = WindowsAttaributes2FileSystemAttributes(A); // convert and return
@@ -1248,7 +1316,7 @@ INT32 TFileSystem::SetDirectoryAttributes(CONST_PCHAR iPath, TFileSystemAttribut
 		if (R != 0) return R; // invalid path?
 	}
 #ifdef WINDOWS_SYSTEM
-	if (::SetFileAttributes(iPath, FileSystemAttributes2WindowsAttaributes(iAttr) | FILE_ATTRIBUTE_DIRECTORY) != 0) return 0; // set attributes
+	if (::SetFileAttributesA(iPath, FileSystemAttributes2WindowsAttaributes(iAttr) | FILE_ATTRIBUTE_DIRECTORY) != 0) return 0; // set attributes
 	switch (GetLastError()) {
 	case ERROR_FILE_NOT_FOUND:
 		return FILE_SYSTEM_ERROR_DIRECTORY_NOT_EXISTS; // path not found?

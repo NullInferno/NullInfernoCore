@@ -207,16 +207,14 @@ class TFileStream;
 #define MIN(_V1, _V2) (((_V1) < (_V2)) ? (_V1) : (_V2))
 
 #ifdef WINDOWS_SYSTEM
+
 #define MEMORY_ALLOC(_size) _aligned_malloc(ALIGN16(_size), 16)
 #define MEMORY_FREE(_ptr) _aligned_free(_ptr)
-
-#define FNC_STRCASECMP _stricmp
 
 #else
 #define MEMORY_ALLOC(_size) malloc(ALIGN16(_size))
 #define MEMORY_FREE(_ptr) free(_ptr)
 
-#define FNC_STRCASECMP strcasecmp
 #endif
 
 #define IS_PCHAR_EMPTY(_p) (((_p) == NULL) || (*(_p) == 0 ))

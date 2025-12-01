@@ -1422,6 +1422,8 @@ BOOL RunValidityTests_TFileSystem(void) {
 	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != FILE_SYSTEM_ERROR_ACCESS) return TEnvironment::ShowTestErrorMessage(-8116, "TFileSystem::DeleteDirectory");
 	R = TFileSystem::DeleteDirectory(S1.PChar(), false, true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8117, "TFileSystem::DeleteDirectory");
 
+	R = TFileSystem::CreateFullPath(&S1, "c:\\windows", "test", "txt"); if ((R != 0) || (!S1.IsEqual("c:\\windows\\test.txt"))) return TEnvironment::ShowTestErrorMessage(-8119, "TFileSystem::CreateFullPath");
+
 #else
 	if (TFileSystem::IsValidPath("") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8001, "TFileSystem::IsValidPath");
 	if (TFileSystem::IsValidPath("x") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8002, "TFileSystem::IsValidPath");
@@ -1557,6 +1559,8 @@ BOOL RunValidityTests_TFileSystem(void) {
 	R = TFileSystem::GetDirectoryAttributes(S1.PChar(), &A); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8094, "TFileSystem::GetFileAttributes");
 	if (A != (TFileSystemAttributes)(FSA_S_IFDIR | FSA_S_IRUSR | FSA_S_IWUSR | FSA_S_IXUSR | FSA_S_IRGRP | FSA_S_IWGRP | FSA_S_IXGRP | FSA_S_IROTH | FSA_S_IWOTH | FSA_S_IXOTH | FSA_S_ISUID | FSA_S_ISGID | FSA_S_ISVTX)) return TEnvironment::ShowTestErrorMessage(-8095, "TFileSystem::GetFileAttributes");
 	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8096, "TFileSystem::DeleteDirectory");
+
+	R = TFileSystem::CreateFullPath(&S1, "/home/user/", "test", "txt"); if ((R != 0) || (!S1.IsEqual("/home/user/test.txt"))) return TEnvironment::ShowTestErrorMessage(-8097, "TFileSystem::CreateFullPath");
 #endif
 
 	return true; // all tests passed
@@ -1588,7 +1592,7 @@ BOOL RunValidityTests_TFileStream(void) {
 	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_EXISTING, CM_BINARY); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-9004, "TFileStream::Open");
 	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9005, "TFileStream::Open");
 	FS.Close(); TFileSystem::DeleteFile(S1.PChar());
-	R = FS.Open(S1.PChar(), AM_READ, OM_APPEND_TO_END, CM_BINARY); if (R != FILE_SYSTEM_ERROR_FILE_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-9006, "TFileStream::Open");
+	R = FS.Open(S1.PChar(), AM_READ, OM_APPEND_TO_END, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9006, "TFileStream::Open");
 	R = FS.Open(S1.PChar(), AM_READ, OM_OPEN_ALWAYS, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9007, "TFileStream::Open");
 	FS.Close();
 	R = FS.Open(S1.PChar(), AM_READ, OM_APPEND_TO_END, CM_BINARY); if (R != 0) return TEnvironment::ShowTestErrorMessage(-9008, "TFileStream::Open");

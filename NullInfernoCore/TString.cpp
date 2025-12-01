@@ -1050,7 +1050,7 @@ void TString::AppendValue(CONST_PCHAR iValue, INT64 iLength) {
 
 	INT64 L = (iLength < 0) ? FNC_STRLEN(iValue) : iLength; // Determine length
 	if (L == 0) return; // Nothing to append?
-	if (Reallocate(L, true)) { // Reallocate memory
+	if (Reallocate(Length + L, true)) { // Reallocate memory
 		FNC_MEMCPY(Value + Length, iValue, L); // Copy the content
 		Length += L; // Update length
 		Value[Length] = 0; // Terminate the string

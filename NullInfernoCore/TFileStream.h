@@ -17,7 +17,7 @@ enum TFileStreamOpenMode {
 	OM_OPEN_ALWAYS = 2, // Open existing file or create new
 	OM_OPEN_EXISTING = 3, // Open existing file, fail if not exists
 	OM_TRUNCATE_EXISTING = 4, // Open existing file and truncate to zero length
-	OM_APPEND_TO_END = 5 // Open existing file and set position to end
+	OM_APPEND_TO_END = 5 // Open existing file and set position to end or create new
 };
 
 //	...............................................................................................
@@ -55,11 +55,16 @@ public:
 	virtual INT64 Write(CONST_PVOID iBuffer, INT64 iBytesToWrite); // Write bytes to the stream
 	virtual INT64 Write(TBytes* iBuffer, INT64 iStartIndex = 0, INT64 iBytesToWrite = -1); // Write bytes to the stream
 public:
+	BOOL WriteStringLine(TString *iValue); // Write string line to the stream
+public:
 	virtual INT64 Seek(INT64 iOffset, TStreamSeekOrigin iOrigin = SO_CURRENT); // Seek to position in the stream
 	virtual INT64 GetPosition(void); // Get current position in the stream
 	virtual INT64 GetSize(void); // Get size of the stream
 	virtual BOOL Rewind(void); // Rewind the stream to the beginning
 public:
 	virtual INT32 Open(CONST_PCHAR iFilePath, TFileStreamAccessMode iAccessMode, TFileStreamOpenMode iOpenMode, TFileStreamContentMode iContentMode = CM_BINARY); // Open file stream
+public:
+	static BOOL AppendStringLineToFile(CONST_PCHAR iFilePath, TString *iValue); // Append a string line to a text file 
+	static BOOL CreateEmptyFile(CONST_PCHAR iFilePath); // Create an empty file
 };
 //	...............................................................................................

@@ -5,6 +5,7 @@
   </Configurations>
   <Folder Name="/Solution Items/">
     <File Path="makefile" />
+    <File Path="makefile2." />
   </Folder>
   <Project Path="NullInfernoCore/NullInfernoCore.vcxproj" Id="dc0d3352-c6fd-4242-9260-1f82ae3425ca" />
   <Project Path="tester/tester.vcxproj" Id="6323418a-7dfd-4eb9-b670-c289ae2afc0f">

@@ -114,6 +114,13 @@ enum TFileSystemAttributes : UINT64 {
 	FSA_EXT2_PROJINHERIT_FL = 0x400000000000000ull,
 };
 
+#undef GetCurrentDirectory
+#undef CreateDirectory
+#undef DeleteFile
+#undef GetFileAttributes
+#undef SetFileAttributes
+#undef DeleteFile
+
 //	...............................................................................................
 //	Class TFileSystem
 //	...............................................................................................
@@ -123,6 +130,7 @@ public:
 	static INT32 IsValidPath(CONST_PCHAR iPath); // Check if a path is valid
 	static INT32 IsValidRelativePath(TString* iPath); // Check if a relative path is valid
 	static INT32 IsValidRelativePath(CONST_PCHAR iPath); // Check if a relative path is valid
+public:
 	static INT32 AppendPathSeparator(TString *ioPath, BOOL iCheckPath = false); // Append a path separator to the path if it does not end with one
 	static INT32 RemovePathSeparator(TString* ioPath, BOOL iCheckPath = false); // Remove trailing path separator from the path if it exists
 	static INT32 ExtractPathParts(CONST_PCHAR iFullPath, TString* oDirectoryPath, TString* oFileName, TString* oFileNameOnly, TString* oFileExtension, BOOL iCheckPath = false); // Extract directory path, file name and file extension from a full file path
@@ -131,6 +139,10 @@ public:
 	static INT32 NormalizePath(TString* ioResult, BOOL iCheckPath = false); // Normalize a file path
 	static INT32 AppendToPath(CONST_PCHAR iPath, CONST_PCHAR iValue, TString* oResult, BOOL iCheckPath = false); // Append value to path
 	static INT32 AppendToPath(TString* ioPath, CONST_PCHAR iValue, BOOL iCheckPath = false); // Append value to path
+	static INT32 CreateFullPath(TString* oResult, CONST_PCHAR iPath, CONST_PCHAR iFileNameOnly, CONST_PCHAR iExt); // Create a full file path from directory path, file name and file extension
+	static void ApppendExt(TString* ioFileName, CONST_PCHAR iExt); // Append file extension to file name
+public:
+	static void GetCurrentDirectory(TString* oDirectoryPath); // Get current working directory
 public:
 	static INT32 CreateDirectory(CONST_PCHAR iDirectoryPath, BOOL iCreateFullPath = false, BOOL iCheckPath = false); // Create a directory
 	static INT32 DirectoryExists(CONST_PCHAR iDirectoryPath, BOOL iCheckPath = false); // Check if a directory exists

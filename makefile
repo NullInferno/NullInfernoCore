@@ -1,62 +1,69 @@
 #
-# This makefile is only used for my library compilation!
+# This makefile is only used for my own compilation!
 #
 
 CXX = g++
 CXXFLAGS = -Wall -m64 -mtune=native -march=native -O3 -DLINUX_SYSTEM
 
-TARGET_TESTER = /home/nullinferno/projects/NullInfernoCore/tester
-SRCS_TESTER = validity_tests.cpp performance_tests.cpp
-HEADERS_TESTER = NullInfernoCore
+OBJS_LIB_DIR = objs/NullInfernoCore
+SRCS_LIB_DIR = /mnt/z/Development/Projects/sources/NullInfernoCore/NullInfernoCore_Solution/NullInfernoCore
+HEADER_LIB_DIR = /mnt/z/Development/Projects/sources/NullInfernoCore/NullInfernoCore_Solution/NullInfernoCore
+TARGET_LIB = libNullInfernoCore.a
 
-TARGET_LIB = /home/nullinferno/projects/NullInfernoCore/libNullInfernoCore.a
+OBJS_TESTER_DIR = objs/tester
+TARGET_TESTER = tester
+SRCS_TESTER_DIR = /mnt/z/Development/Projects/sources/NullInfernoCore/NullInfernoCore_Solution/tester
 
-SRCS_LIB = TEnvironment.cpp \
-			TStopwatch.cpp \
-			CommonFunctions.cpp \
-			TString.cpp \
-			TList.cpp \
-			TStringList.cpp \
-			TBytes.cpp \
-			TParamsList.cpp \
-			TDateTime.cpp \
-			TStream.cpp \
-			TMemoryStream.cpp \
-			TBinaryWriter.cpp \
-			TBinaryReader.cpp \
-			TCommandLineParser.cpp \
-			TFileStream.cpp \
-			TFileSystem.cpp
 
-OBJDIR = /home/nullinferno/projects/NullInfernoCore/objs
-OBJDIR_TESTER = /home/nullinferno/projects/NullInfernoCore/objs
-OBJS_LIB = $(SRCS_LIB:%.cpp=$(OBJDIR)/%.o)
-DEPS_LIB = $(SRCS_LIB:%.cpp=$(OBJDIR)/%.d)
+$(TARGET_LIB):
+	@echo " "
+	@echo "------------------------------------------------------------------"
+	@echo "Build library NullInfernoCore"
+	@echo "------------------------------------------------------------------"
+	@echo " "
 
-OBJS_TESTER = $(SRCS_TESTER:%.cpp=$(OBJDIR)/%.o)
-DEPS_TESTER = $(SRCS_TESTER:%.cpp=$(OBJDIR)/%.d)
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TEnvironment.cpp -o $(OBJS_LIB_DIR)/TEnvironment.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TStopwatch.cpp -o $(OBJS_LIB_DIR)/TStopwatch.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/CommonFunctions.cpp -o $(OBJS_LIB_DIR)/CommonFunctions.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TString.cpp -o $(OBJS_LIB_DIR)/TString.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TList.cpp -o $(OBJS_LIB_DIR)/TList.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TStringList.cpp -o $(OBJS_LIB_DIR)/TStringList.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TBytes.cpp -o $(OBJS_LIB_DIR)/TBytes.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TParamsList.cpp -o $(OBJS_LIB_DIR)/TParamsList.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TDateTime.cpp -o $(OBJS_LIB_DIR)/TDateTime.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TStream.cpp -o $(OBJS_LIB_DIR)/TStream.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TMemoryStream.cpp -o $(OBJS_LIB_DIR)/TMemoryStream.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TBinaryWriter.cpp -o $(OBJS_LIB_DIR)/TBinaryWriter.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TBinaryReader.cpp -o $(OBJS_LIB_DIR)/TBinaryReader.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TCommandLineParser.cpp -o $(OBJS_LIB_DIR)/TCommandLineParser.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TFileStream.cpp -o $(OBJS_LIB_DIR)/TFileStream.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_LIB_DIR)/TFileSystem.cpp -o $(OBJS_LIB_DIR)/TFileSystem.o
+	ar rcs $(TARGET_LIB) $(OBJS_LIB_DIR)/*.o
+
+$(TARGET_TESTER):
+	@echo " "
+	@echo "------------------------------------------------------------------"
+	@echo "Build tester for NullInfernoCore"
+	@echo "------------------------------------------------------------------"
+	@echo " "
+
+	$(CXX) $(CXXFLAGS) -c $(SRCS_TESTER_DIR)/validity_tests.cpp -I$(HEADER_LIB_DIR) -o $(OBJS_TESTER_DIR)/validity_tests.o
+	$(CXX) $(CXXFLAGS) -c $(SRCS_TESTER_DIR)/performance_tests.cpp -I$(HEADER_LIB_DIR) -o $(OBJS_TESTER_DIR)/performance_tests.o
+	$(CXX) $(CXXFLAGS) $(SRCS_TESTER_DIR)/tester.cpp -I$(HEADER_LIB_DIR) -L. -o $(TARGET_TESTER) $(OBJS_TESTER_DIR)/*.o -lNullInfernoCore
+
+.PHONY: clean all lib tester clean_lib clean_tester
 
 all: $(TARGET_LIB) $(TARGET_TESTER)
 
-$(TARGET_LIB): $(OBJS_LIB)
-	ar rcs $@ $^
+lib: $(TARGET_LIB)
 
-$(OBJDIR)/%.o: NullInfernoCore/%.cpp
-	@echo "Compile $< -> $@"
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
-
-$(OBJDIR)/validity_tests.o: tester/validity_tests.cpp
-	@echo "Compile $< -> $@"
-	$(CXX) $(CXXFLAGS) -I$(HEADERS_TESTER) -MMD -MP -c $< -o $@
-$(OBJDIR)/performance_tests.o: tester/performance_tests.cpp
-	@echo "Compile $< -> $@"
-	$(CXX) $(CXXFLAGS) -I$(HEADERS_TESTER) -MMD -MP -c $< -o $@
-
--include $(DEPS_LIB)
--include $(DEPS_TESTER)
-
-$(TARGET_TESTER): $(OBJS_TESTER)
-	$(CXX) $(CXXFLAGS) tester/tester.cpp -I$(HEADERS_TESTER) -L/home/nullinferno/projects/NullInfernoCore -o $(TARGET_TESTER) $(OBJS_TESTER) -lNullInfernoCore
+tester: $(TARGET_TESTER)
 
 clean:
-	rm -f $(TARGET_LIB) $(TARGET_TESTER) $(OBJS_LIB) $(DEPS_LIB)
+	rm -f $(TARGET_LIB) $(TARGET_TESTER) $(OBJS_LIB_DIR)/*.o $(OBJS_TESTER_DIR)/*.o
+
+clean_lib:
+	rm -f $(TARGET_LIB) $(OBJS_LIB_DIR)/*.o
+
+clean_tester:
+	rm -f $(TARGET_TESTER) $(OBJS_TESTER_DIR)/*.o
