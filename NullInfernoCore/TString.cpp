@@ -372,6 +372,39 @@ INT64 TString::CaseFindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHA
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Format UINT64 value with thousands separator
+//	Input:
+// 			iValue - value to format
+// 			oResult - output string
+// 			iThousandsSeparator - thousands separator character
+//	Output:
+//			none
+//	...............................................................................................
+void TString::FormatUINT64(UINT64 iValue, TString* oResult, CHAR iThousandsSeparator) {
+	CHAR BUF[64];
+	CHAR BUF2[64];
+
+	INT64 L = UINT64ToStr(iValue, BUF); // Convert to string
+	
+	INT64 R = L < 4 ? L : (L % 3); // Remainder
+	if (R == 0) R = 3;
+
+	PCHAR P = BUF; // Current position in the buffer
+	PCHAR P2 = BUF2; // Current position in the buffer
+	while(true) {
+		if (*P == 0) break;
+		if (R == 0) {
+			*P2++ = iThousandsSeparator; // Insert thousands separator
+			R = 3;
+		}
+		*P2++ = *P++; // Copy character
+		R--;
+	}
+	*P2 = 0; // Terminate the string
+	oResult->SetValue(BUF2, P2 - BUF2); // Set the result
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Constructor
 //	Input:
 // 			none
@@ -901,7 +934,7 @@ INT32 TString::Compare(CONST_PCHAR iValue, INT64 iStart, INT64 iMaxLength) {
 //			0 if equal, <0 if less, >0 if greater
 //	...............................................................................................
 INT32 TString::Compare(TString* iValue, INT64 iStart, INT64 iMaxLength) {
-	return Compare(iValue == NULL ? (CONST_PCHAR)NULL : (CONST_PCHAR)iValue->Value, iMaxLength); // Call the other overload
+	return Compare(iValue == NULL ? (CONST_PCHAR)NULL : (CONST_PCHAR)iValue->Value, iStart, iMaxLength); // Call the other overload
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -914,7 +947,7 @@ INT32 TString::Compare(TString* iValue, INT64 iStart, INT64 iMaxLength) {
 //			0 if equal, <0 if less, >0 if greater
 //	...............................................................................................
 INT32 TString::Compare(TString& iValue, INT64 iStart, INT64 iMaxLength) {
-	return Compare((CONST_PCHAR)iValue.Value, iMaxLength); // Call the other overload
+	return Compare((CONST_PCHAR)iValue.Value, iStart, iMaxLength); // Call the other overload
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -986,7 +1019,7 @@ INT32 TString::CaseCompare(CONST_PCHAR iValue, INT64 iStart, INT64 iMaxLength, I
 //			0 if equal, <0 if less, >0 if greater
 //	...............................................................................................
 INT32 TString::CaseCompare(TString* iValue, INT64 iStart, INT64 iMaxLength, INT32 iCodePage) {
-	return CaseCompare(iValue == NULL ? (CONST_PCHAR)NULL : (CONST_PCHAR)iValue->Value, iMaxLength, iCodePage); // Call the other overload
+	return CaseCompare(iValue == NULL ? (CONST_PCHAR)NULL : (CONST_PCHAR)iValue->Value, iStart, iMaxLength, iCodePage); // Call the other overload
 }
 //	...............................................................................................
 //	...............................................................................................
@@ -1000,7 +1033,7 @@ INT32 TString::CaseCompare(TString* iValue, INT64 iStart, INT64 iMaxLength, INT3
 //			0 if equal, <0 if less, >0 if greater
 //	...............................................................................................
 INT32 TString::CaseCompare(TString& iValue, INT64 iStart, INT64 iMaxLength, INT32 iCodePage) {
-	return CaseCompare((CONST_PCHAR)iValue.Value, iMaxLength, iCodePage); // Call the other overload
+	return CaseCompare((CONST_PCHAR)iValue.Value, iStart, iMaxLength, iCodePage); // Call the other overload
 }
 //	...............................................................................................
 //	...............................................................................................

@@ -44,6 +44,8 @@
 #define FILE_SYSTEM_ERROR_FILE_EXISTS -27
 #define FILE_SYSTEM_ERROR_FILE_NOT_EXISTS -28
 #define FILE_SYSTEM_ERROR_FILE_OPEN -29
+#define FILE_SYSTEM_ERROR_ENUMERATE_ABORT -30
+#define FILE_SYSTEM_ERROR_ENUMERATE_EMPTY -31
 
 enum TFileSystemAttributes : UINT64 {
 	FSA_NONE_VALUE = (UINT64)0,
@@ -121,6 +123,31 @@ enum TFileSystemAttributes : UINT64 {
 #undef SetFileAttributes
 #undef DeleteFile
 
+typedef struct {
+	CONST_PCHAR NameOnly;
+	CONST_PCHAR Path;
+	TFileSystemAttributes Attributes;
+	UINT64 Size;
+	DATETIME CreationTime;
+	DATETIME LastAccessTime;
+	DATETIME ModificationTime;
+	BOOL IsDirectory;
+	INT32 DirectoryState;
+} ENUM_ITEM, *PENUM_ITEM;
+
+typedef INT32(*TEnumerateFilterFunction)(INT32 iState, PENUM_ITEM iItem, PVOID iUserData);
+
+#define ENUMERATE_STATE_OK 0
+#define ENUMERATE_STATE_ERROR 1
+
+#define ENUMERATE_RETURN_CONTINUE 0
+#define ENUMERATE_RETURN_SKIP 1
+#define ENUMERATE_RETURN_ABORT 2
+
+#define ENUMERATE_DIRECTORY_STATE_NOT_ENUMERATED 0
+#define ENUMERATE_DIRECTORY_STATE_NOT_EMPTY 1
+#define ENUMERATE_DIRECTORY_STATE_EMPTY 2
+
 //	...............................................................................................
 //	Class TFileSystem
 //	...............................................................................................
@@ -156,5 +183,9 @@ public:
 	static INT32 SetFileAttributes(CONST_PCHAR iPath, TFileSystemAttributes iAttr, BOOL iCheckPath = false); // Set file attributes
 	static INT32 GetDirectoryAttributes(CONST_PCHAR iPath, TFileSystemAttributes* oAttr, BOOL iCheckPath = false); // Get directory attributes
 	static INT32 SetDirectoryAttributes(CONST_PCHAR iPath, TFileSystemAttributes iAttr, BOOL iCheckPath = false); // Set directory attributes
+public:
+	static INT32 Enumerate(CONST_PCHAR iPath, PVOID iUserData, TEnumerateFilterFunction iFilterFunction = NULL); // Enumerate files and directories in a directory
+public:
+	static void FormatSizeInBytes(UINT64 iSizeInBytes, TString* oResult, CONST_PCHAR iLanguageStrings); // Format size in bytes to human-readable string
 };
 //	...............................................................................................

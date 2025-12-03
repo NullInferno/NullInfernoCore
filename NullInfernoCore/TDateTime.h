@@ -96,6 +96,9 @@ public:
 	static INT64 FormatDateTime(DATETIME iValue, PCHAR oResult, INT64 iLength, CONST_PCHAR iUserFormatString = ""); // Format date and time to string
 	static DATETIME ParseDateTime(CONST_PCHAR iValue, CONST_PCHAR iFormatString = ""); // Parse date and time from string
 public:
+	static DATETIME FromWindowsFileTime(PVOID iValue); // Create date and time value from Windows FILETIME
+	static DATETIME FromWindowsSystemTime(PVOID iValue); // Create date and time value from Windows SYSTEMTIME
+	static DATETIME FromLinuxTime(UINT64 iValue); // Create date and time value from Linux time
 	static DATETIME GetCurrentDateTime(BOOL iLocalDateTime = true); // Get current local date and time
 	static BOOL DATETIMEToComponents(DATETIME iValue, PDATETIME_COMPONENTS oComponents); // Convert date and time value to components
 	static DATETIME ComponentsToDATETIME(PDATETIME_COMPONENTS iComponents); // Convert components to date and time value

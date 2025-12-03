@@ -623,6 +623,74 @@ DATETIME TDateTime::ParseDateTime(CONST_PCHAR iValue, CONST_PCHAR iFormatString)
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Create date and time value from Windows FILETIME
+//	Input:
+// 			iValue - pointer to FILETIME structure
+//	Output:
+//			converted DATETIME value
+//	...............................................................................................
+DATETIME TDateTime::FromWindowsFileTime(PVOID iValue) {
+#ifdef WINDOWS_SYSTEM
+	if (iValue == NULL) return DATETIME_EMPTY; // Invalid pointer
+	PFILETIME FT = (PFILETIME)iValue;
+	ULARGE_INTEGER U; U.LowPart = FT->dwLowDateTime; U.HighPart = FT->dwHighDateTime; // Convert to ULARGE_INTEGER
+	return U.QuadPart; // Return the date and time value
+#else
+	return DATETIME_EMPTY; // Return the date and time value
+//	typedef struct {
+//		UINT32 dwLowDateTime;
+//		UINT32 dwHighDateTime;
+//	} FILETIME, *PFILETIME;
+//
+//	typedef union _ULARGE_INTEGER {
+//		struct {
+//			UINT32 LowPart;
+//			UINT32 HighPart;
+//		} u;
+//		UINT64 QuadPart;
+//	} ULARGE_INTEGER;
+//
+//	PFILETIME FT = (PFILETIME)iValue;
+//	ULARGE_INTEGER U; U.u.LowPart = FT->dwLowDateTime; U.u.HighPart = FT->dwHighDateTime; // Convert to ULARGE_INTEGER
+//	return U.QuadPart; // Return the date and time value
+#endif
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Create date and time value from Windows SYSTEMTIME
+//	Input:
+// 			iValue - pointer to SYSTEMTIME structure
+//	Output:
+//			converted DATETIME value
+//	...............................................................................................
+DATETIME TDateTime::FromWindowsSystemTime(PVOID iValue) {
+#ifdef WINDOWS_SYSTEM
+	if (iValue == NULL) return DATETIME_EMPTY; // Invalid pointer
+	FILETIME FT;
+	SystemTimeToFileTime((LPSYSTEMTIME)iValue, &FT); // Convert to file time
+	ULARGE_INTEGER U; U.LowPart = FT.dwLowDateTime; U.HighPart = FT.dwHighDateTime; // Convert to ULARGE_INTEGER
+	return U.QuadPart; // Return the date and time value
+#else
+	return DATETIME_EMPTY; // Return the date and time value
+#endif
+}
+//	...............................................................................................
+//	...............................................................................................
+//	Create date and time value from Linux time
+//	Input:
+// 			iValue - Linux time value
+//	Output:
+//			converted DATETIME value
+//	...............................................................................................
+DATETIME TDateTime::FromLinuxTime(UINT64 iValue) {
+#ifdef WINDOWS_SYSTEM
+	return DATETIME_EMPTY; // Return the date and time value
+#else
+	return (DATETIME)(iValue + EPOCH_DIFF_SECONDS) * 10000000ULL; // Return the date and time value
+#endif
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Get current local date and time
 //	Input:
 // 			iLocalDateTime - true for local date and time, false for UTC

@@ -1,13 +1,15 @@
 #include "NullInfernoCore.h"
 
 #ifdef WINDOWS_SYSTEM
-CONST_PCHAR TEST_FOLDER = "Z:\\Development\\Temp";
+CONST_PCHAR TEST_FOLDER = "Z:\\Development\\Temp\\NullCoreInferno";
+CONST_PCHAR TEST_FOLDER_TEST_DIRS = "Z:\\Development\\Temp";
 
 TFileSystemAttributes WindowsAttaributes2FileSystemAttributes(UINT32 iValue);
 UINT32 FileSystemAttributes2WindowsAttaributes(TFileSystemAttributes iValue);
 
 #else
-CONST_PCHAR TEST_FOLDER = "/home/nullinferno/projects/Temp";
+CONST_PCHAR TEST_FOLDER = "/home/nullinferno/projects/Temp/NullCoreInferno";
+CONST_PCHAR TEST_FOLDER_TEST_DIRS = "/home/nullinferno/projects/Temp";
 
 TFileSystemAttributes LinuxAttaributes2FileSystemAttributes(UINT32 iAttr, UINT32 iChmod, UINT32 iExt2Attr);
 void FileSystemAttributes2LinuxAttaributes(TFileSystemAttributes iValue, UINT32* oAttr, UINT32* oChmod, UINT32* oExt2Attr);
@@ -634,6 +636,18 @@ BOOL RunValidityTests_TString(void) {
 	S1.SetValue("aaaaaa"); if ((S1.InsertValue(2, "bb", -1) != 2) || (S1.Length != 8) || (!S1.IsEqual("aabbaaaa"))) return TEnvironment::ShowTestErrorMessage(-1213, "TString::InsertValue");
 	S1.SetValue("aaaaaa"); if ((S1.InsertValue(2, (INT32)-12) != 2) || (S1.Length != 9) || (!S1.IsEqual("aa-12aaaa"))) return TEnvironment::ShowTestErrorMessage(-1214, "TString::InsertValue");
 	S1.SetValue("aaaaaa"); if ((S1.InsertChars(3, 'b', 4) != 3) || (S1.Length != 10) || (!S1.IsEqual("aaabbbbaaa"))) return TEnvironment::ShowTestErrorMessage(-1215, "TString::InsertValue");
+
+	TString::FormatUINT64(0, &S1, ' '); if (!S1.IsEqual("0")) return TEnvironment::ShowTestErrorMessage(-1216, "TString::FormatUINT64");
+	TString::FormatUINT64(1, &S1, ' '); if (!S1.IsEqual("1")) return TEnvironment::ShowTestErrorMessage(-1217, "TString::FormatUINT64");
+	TString::FormatUINT64(12, &S1, ' '); if (!S1.IsEqual("12")) return TEnvironment::ShowTestErrorMessage(-1218, "TString::FormatUINT64");
+	TString::FormatUINT64(123, &S1, ' '); if (!S1.IsEqual("123")) return TEnvironment::ShowTestErrorMessage(-1219, "TString::FormatUINT64");
+	TString::FormatUINT64(1234, &S1, ' '); if (!S1.IsEqual("1 234")) return TEnvironment::ShowTestErrorMessage(-1220, "TString::FormatUINT64");
+	TString::FormatUINT64(12345, &S1, ' '); if (!S1.IsEqual("12 345")) return TEnvironment::ShowTestErrorMessage(-1221, "TString::FormatUINT64");
+	TString::FormatUINT64(123456, &S1, ' '); if (!S1.IsEqual("123 456")) return TEnvironment::ShowTestErrorMessage(-1222, "TString::FormatUINT64");
+	TString::FormatUINT64(1234567, &S1, ' '); if (!S1.IsEqual("1 234 567")) return TEnvironment::ShowTestErrorMessage(-1223, "TString::FormatUINT64");
+	TString::FormatUINT64(12345678, &S1, ' '); if (!S1.IsEqual("12 345 678")) return TEnvironment::ShowTestErrorMessage(-1224, "TString::FormatUINT64");
+	TString::FormatUINT64(123456789, &S1, ' '); if (!S1.IsEqual("123 456 789")) return TEnvironment::ShowTestErrorMessage(-1225, "TString::FormatUINT64");
+	TString::FormatUINT64(1234567890, &S1, ','); if (!S1.IsEqual("1,234,567,890")) return TEnvironment::ShowTestErrorMessage(-1226, "TString::FormatUINT64");
 
 	PCHAR_FREE(P1);
 	PCHAR_FREE(P2);
@@ -1424,6 +1438,30 @@ BOOL RunValidityTests_TFileSystem(void) {
 
 	R = TFileSystem::CreateFullPath(&S1, "c:\\windows", "test", "txt"); if ((R != 0) || (!S1.IsEqual("c:\\windows\\test.txt"))) return TEnvironment::ShowTestErrorMessage(-8119, "TFileSystem::CreateFullPath");
 
+	R = TFileSystem::Enumerate("c:\\Windows1", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8120, "TFileSystem::CreateFullPath");
+	R = TFileSystem::Enumerate("c:\\System Volume Information", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_READ) return TEnvironment::ShowTestErrorMessage(-8121, "TFileSystem::CreateFullPath");
+	S1.SetValue(TEST_FOLDER_TEST_DIRS); TFileSystem::AppendToPath(&S1, "test");
+	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
+		//if (iState == ENUMERATE_STATE_ERROR) {
+		//	printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+		//}
+		//CHAR BUF[32], BUF1[32], BUF2[32];
+		//TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//if (iItem->IsDirectory) {
+		//	if (iItem->DirectoryState == ENUMERATE_DIRECTORY_STATE_EMPTY) {
+		//		printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s] -> Skipped", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+		//	}
+		//	return ENUMERATE_RETURN_CONTINUE;
+		//}
+		////else return ENUMERATE_RETURN_SKIP;
+		//else printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s]", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+		////if (iItem->IsDirectory) return ENUMERATE_RETURN_SKIP;
+		return ENUMERATE_RETURN_CONTINUE;
+		});
+	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8120, "TFileSystem::Enumerate");
+
 #else
 	if (TFileSystem::IsValidPath("") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8001, "TFileSystem::IsValidPath");
 	if (TFileSystem::IsValidPath("x") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8002, "TFileSystem::IsValidPath");
@@ -1561,6 +1599,31 @@ BOOL RunValidityTests_TFileSystem(void) {
 	R = TFileSystem::DeleteDirectory(S1.PChar(), false, false); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8096, "TFileSystem::DeleteDirectory");
 
 	R = TFileSystem::CreateFullPath(&S1, "/home/user/", "test", "txt"); if ((R != 0) || (!S1.IsEqual("/home/user/test.txt"))) return TEnvironment::ShowTestErrorMessage(-8097, "TFileSystem::CreateFullPath");
+
+	R = TFileSystem::Enumerate("/home1", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_NOT_EXISTS) return TEnvironment::ShowTestErrorMessage(-8098, "TFileSystem::CreateFullPath");
+	R = TFileSystem::Enumerate("/root", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_READ) return TEnvironment::ShowTestErrorMessage(-8099, "TFileSystem::CreateFullPath (%d)", R);
+	S1.SetValue(TEST_FOLDER_TEST_DIRS); TFileSystem::AppendToPath(&S1, "test");
+	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
+		//if (iState == ENUMERATE_STATE_ERROR) {
+		//	printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+		//}
+		//CHAR BUF[32], BUF1[32], BUF2[32];
+		//TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+		//if (iItem->IsDirectory) {
+		//	if (iItem->DirectoryState == ENUMERATE_DIRECTORY_STATE_EMPTY) {
+		//		printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s] -> Skipped", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+		//	}
+		//	return ENUMERATE_RETURN_CONTINUE;
+		//}
+		////else return ENUMERATE_RETURN_SKIP;
+		//else printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s]", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+		////if (iItem->IsDirectory) return ENUMERATE_RETURN_SKIP;
+		return ENUMERATE_RETURN_CONTINUE;
+		});
+	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8100, "TFileSystem::Enumerate");
+
 #endif
 
 	return true; // all tests passed

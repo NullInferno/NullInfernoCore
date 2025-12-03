@@ -111,5 +111,6 @@ public:
 	static UINT64 GenerateCaseHashCode(CONST_PCHAR iValue, INT64 iLength = -1, INT32 iCodePage = 28591); // Generate hash code of the string data case insensitive
 	static INT64 FindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings
 	static INT64 CaseFindStringIndex(CONST_PCHAR iValue, INT64 iLength, CONST_PCHAR* iList, INT64 iListSize); // Find string index in the list of strings case insensitive
+	static void FormatUINT64(UINT64 iValue, TString* oResult, CHAR iThousandsSeparator = ' '); // Format UINT64 value with thousands separator
 };
 //	...............................................................................................

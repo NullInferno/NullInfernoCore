@@ -1343,3 +1343,231 @@ INT32 TFileSystem::SetDirectoryAttributes(CONST_PCHAR iPath, TFileSystemAttribut
 #endif
 }
 //	................................................................................................
+
+//	................................................................................................
+//  Enumerate files and directories in a directory - internal implementation
+//	Input:
+//			iPath - directory path
+// 			iUserData - user data pointer passed to filter function
+// 			iFilterFunction - filter function called for each file/directory found
+//	Output:
+//			0 or error code
+//	................................................................................................
+INT32 _Enumerate(CONST_PCHAR iPath, PENUM_ITEM iParent, PVOID iUserData, TEnumerateFilterFunction iFilterFunction) {
+
+#ifdef WINDOWS_SYSTEM
+	WIN32_FIND_DATAA FindData;
+	ENUM_ITEM EntryInfo;
+	ULARGE_INTEGER U;
+
+	INT64 C = 0;
+	TString SearchPath = TString(iPath); TFileSystem::AppendPathSeparator(&SearchPath, false); SearchPath.AppendChars('*', 1); // create search path
+
+	HANDLE hFind = FindFirstFileA(SearchPath.PChar(), &FindData); // start searching
+	if (hFind == INVALID_HANDLE_VALUE) {
+		if (iFilterFunction == NULL) return FILE_SYSTEM_ERROR_DIRECTORY_READ; // cannot read directory
+		EntryInfo.Path = iPath;
+		EntryInfo.NameOnly = "";
+		
+		INT32 R = iFilterFunction(ENUMERATE_STATE_ERROR, &EntryInfo, iUserData); // call filter function for handle error
+		switch (R) {
+			case ENUMERATE_RETURN_ABORT:
+				return FILE_SYSTEM_ERROR_ENUMERATE_ABORT; // stop enumeration
+			default:
+				return 0; // continue enumeration
+		}
+	}
+
+	SearchPath.SetLength(SearchPath.Length - 1); // remove '*'
+	do {
+		if (FindData.cFileName[0] == '.') {
+			if (FindData.cFileName[1] == 0) continue; // skip "."
+			if (FindData.cFileName[1] == '.') {
+				if (FindData.cFileName[2] == 0) continue; // skip ".."
+			}
+		}
+
+		EntryInfo.Path = iPath;
+		EntryInfo.NameOnly = (CONST_PCHAR)FindData.cFileName;
+		EntryInfo.Attributes = WindowsAttaributes2FileSystemAttributes(FindData.dwFileAttributes);
+
+		U.HighPart = FindData.ftCreationTime.dwHighDateTime; U.LowPart = FindData.ftCreationTime.dwLowDateTime; EntryInfo.CreationTime = U.QuadPart;
+		U.HighPart = FindData.ftLastAccessTime.dwHighDateTime; U.LowPart = FindData.ftLastAccessTime.dwLowDateTime; EntryInfo.LastAccessTime = U.QuadPart;
+		U.HighPart = FindData.ftLastWriteTime.dwHighDateTime; U.LowPart = FindData.ftLastWriteTime.dwLowDateTime; EntryInfo.ModificationTime = U.QuadPart;
+		EntryInfo.IsDirectory = (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+		U.HighPart = FindData.nFileSizeHigh; U.LowPart = FindData.nFileSizeLow; EntryInfo.Size = U.QuadPart;
+
+		if (EntryInfo.IsDirectory) EntryInfo.DirectoryState = ENUMERATE_DIRECTORY_STATE_NOT_ENUMERATED; // if directory, set state to not enumerated
+
+		INT32 R = iFilterFunction == NULL ? ENUMERATE_RETURN_CONTINUE : iFilterFunction(ENUMERATE_STATE_OK, &EntryInfo, iUserData); // call filter function
+		switch (R) {
+			case ENUMERATE_RETURN_ABORT: {
+				FindClose(hFind); // close search handle
+				return FILE_SYSTEM_ERROR_ENUMERATE_ABORT; // stop enumeration
+			}
+			case ENUMERATE_RETURN_CONTINUE: {
+				if (EntryInfo.IsDirectory) { // directory?
+					TString S(SearchPath); TFileSystem::AppendToPath(&S, FindData.cFileName, false); // create subirectory path
+
+					R = _Enumerate(S.PChar(), &EntryInfo, iUserData, iFilterFunction); // enumerate subdirectory
+					
+					if ((R != 0) && (R != FILE_SYSTEM_ERROR_ENUMERATE_EMPTY)) { // error?
+						FindClose(hFind); // close search handle
+						return R; // error?
+					}
+					
+					EntryInfo.DirectoryState = R == FILE_SYSTEM_ERROR_ENUMERATE_EMPTY ? ENUMERATE_DIRECTORY_STATE_EMPTY : ENUMERATE_DIRECTORY_STATE_NOT_EMPTY; // set new directory state
+					R = iFilterFunction == NULL ? ENUMERATE_RETURN_CONTINUE : iFilterFunction(ENUMERATE_STATE_OK, &EntryInfo, iUserData); // call filter function
+					if (R == ENUMERATE_RETURN_ABORT) {
+						FindClose(hFind); // close search handle
+						return R; // error?
+					}
+				}
+			} break;
+			default: { // skip item - decrease count
+				C--;
+			} break;
+		}
+		C++; // increase count of items found
+	} while (FindNextFileA(hFind, &FindData)); // continue searching
+	FindClose(hFind); // close search handle
+
+	return C == 0 ? FILE_SYSTEM_ERROR_ENUMERATE_EMPTY : 0; // return result
+#else
+
+	ENUM_ITEM EntryInfo;
+
+	TString SearchPath = TString(iPath);
+	TFileSystem::RemovePathSeparator(&SearchPath, false); // remove trailing path separator if it exists
+
+	INT64 C = 0;
+
+	DIR* dir = opendir(SearchPath.PChar()); // open directory
+	if (dir == NULL) {
+		if (iFilterFunction == NULL) return FILE_SYSTEM_ERROR_DIRECTORY_READ; // cannot read directory
+
+		ENUM_ITEM EntryInfo;
+		EntryInfo.Path = iPath;
+		EntryInfo.NameOnly = "";
+
+		INT32 R = iFilterFunction(ENUMERATE_STATE_ERROR, &EntryInfo, iUserData); // call filter function for handle error
+		switch (R) {
+			case ENUMERATE_RETURN_ABORT:
+				return FILE_SYSTEM_ERROR_ENUMERATE_ABORT; // stop enumeration
+			default:
+				return 0; // continue enumeration
+		}
+	}
+
+	struct dirent* entry;
+	while ((entry = readdir(dir)) != NULL) { // enumerate
+		if (entry->d_name[0] == '.') {
+			if (entry->d_name[1] == 0) continue; // skip "."
+			if (entry->d_name[1] == '.') {
+				if (entry->d_name[2] == 0) continue; // skip ".."
+			}
+		}
+
+		EntryInfo.Path = iPath;
+		EntryInfo.NameOnly = (CONST_PCHAR)entry->d_name;
+		EntryInfo.IsDirectory = entry->d_type == DT_DIR;
+
+		TString S(SearchPath); TFileSystem::AppendToPath(&S, entry->d_name, false); // create subirectory path
+		//printf("\nEnumerating: %s\n", S.PChar());
+
+		struct stat st;
+		if (stat(S.PChar(), &st) == -1) { // get attributes
+			INT32 R = iFilterFunction == NULL ? ENUMERATE_RETURN_CONTINUE : iFilterFunction(ENUMERATE_STATE_OK, &EntryInfo, iUserData); // call filter function
+			switch (R) {
+				case ENUMERATE_RETURN_ABORT: {
+					closedir(dir); // close directory
+					return FILE_SYSTEM_ERROR_ENUMERATE_ABORT; // stop enumeration
+				}
+				default:
+					continue; // continue enumeration
+			}
+		}
+
+		UINT32 Attr, Chmod, Ext2Attr;
+		Attr = (UINT64)(st.st_mode & S_IFMT);
+		Chmod = (UINT64)st.st_mode;
+		Ext2Attr = 0;
+
+		EntryInfo.Attributes = LinuxAttaributes2FileSystemAttributes(Attr, Chmod, Ext2Attr); // convert 
+		EntryInfo.Size = (UINT64)st.st_size;
+
+		EntryInfo.CreationTime = TDateTime::FromLinuxTime((UINT64)st.st_ctime); // convert to DATETIME
+		EntryInfo.LastAccessTime = TDateTime::FromLinuxTime((UINT64)st.st_atime); // convert to DATETIME
+		EntryInfo.ModificationTime = TDateTime::FromLinuxTime((UINT64)st.st_mtime); // convert to DATETIME
+
+		if (EntryInfo.IsDirectory) EntryInfo.DirectoryState = ENUMERATE_DIRECTORY_STATE_NOT_ENUMERATED; // if directory, set state to not enumerated
+
+		INT32 R = iFilterFunction == NULL ? ENUMERATE_RETURN_CONTINUE : iFilterFunction(ENUMERATE_STATE_OK, &EntryInfo, iUserData); // call filter function
+		switch (R) {
+		case ENUMERATE_RETURN_ABORT: {
+			closedir(dir); // close directory
+			return FILE_SYSTEM_ERROR_ENUMERATE_ABORT; // stop enumeration
+		}
+		case ENUMERATE_RETURN_CONTINUE: {
+			if (EntryInfo.IsDirectory) { // directory?
+
+				R = _Enumerate(S.PChar(), &EntryInfo, iUserData, iFilterFunction); // enumerate subdirectory
+
+				if ((R != 0) && (R != FILE_SYSTEM_ERROR_ENUMERATE_EMPTY)) { // error?
+					closedir(dir); // close directory
+					return R; // error?
+				}
+
+				EntryInfo.DirectoryState = R == FILE_SYSTEM_ERROR_ENUMERATE_EMPTY ? ENUMERATE_DIRECTORY_STATE_EMPTY : ENUMERATE_DIRECTORY_STATE_NOT_EMPTY; // set new directory state
+				R = iFilterFunction == NULL ? ENUMERATE_RETURN_CONTINUE : iFilterFunction(ENUMERATE_STATE_OK, &EntryInfo, iUserData); // call filter function
+				if (R == ENUMERATE_RETURN_ABORT) {
+					closedir(dir); // close directory
+					return R; // error?
+				}
+			}
+		} break;
+		default: { // skip item - decrease count
+			C--;
+		} break;
+		}
+		C++; // increase count of items found
+
+	}
+
+	closedir(dir); // close directory
+
+	return C == 0 ? FILE_SYSTEM_ERROR_ENUMERATE_EMPTY : 0; // return result
+#endif
+}
+//	................................................................................................
+
+//	................................................................................................
+//  Enumerate files and directories in a directory
+//	Input:
+//			iPath - directory path
+// 			iUserData - user data pointer passed to filter function
+// 			iFilterFunction - filter function called for each file/directory found
+//	Output:
+//			0 or error code
+//	................................................................................................
+INT32 TFileSystem::Enumerate(CONST_PCHAR iPath, PVOID iUserData, TEnumerateFilterFunction iFilterFunction) {
+	INT32 R = DirectoryExists(iPath, true); // check path validity
+	if (R == FILE_SYSTEM_FALSE) return FILE_SYSTEM_ERROR_DIRECTORY_NOT_EXISTS; // not a directory?
+	if (R != FILE_SYSTEM_TRUE) return R; // invalid path?
+
+	R = _Enumerate(iPath, NULL, iUserData, iFilterFunction); // call internal enumeration function
+	return R == FILE_SYSTEM_ERROR_ENUMERATE_EMPTY ? 0 : R; // return result (first level empty directory is not an error)
+}
+//	................................................................................................
+//	................................................................................................
+//  Format size in bytes to human-readable string
+//	Input:
+//			iSizeInBytes - size in bytes
+// 			oResult - output string with formatted size
+// 			iLanguageStrings - language strings for formatting
+//	Output:
+//			none
+//	................................................................................................
+void TFileSystem::FormatSizeInBytes(UINT64 iSizeInBytes, TString* oResult, CONST_PCHAR iLanguageStrings) {
+}
+//	................................................................................................
