@@ -46,6 +46,7 @@
 #define FILE_SYSTEM_ERROR_FILE_OPEN -29
 #define FILE_SYSTEM_ERROR_ENUMERATE_ABORT -30
 #define FILE_SYSTEM_ERROR_ENUMERATE_EMPTY -31
+#define FILE_SYSTEM_ERROR_FILE_RENAME -32
 
 enum TFileSystemAttributes : UINT64 {
 	FSA_NONE_VALUE = (UINT64)0,
@@ -124,29 +125,28 @@ enum TFileSystemAttributes : UINT64 {
 #undef DeleteFile
 
 typedef struct {
-	CONST_PCHAR NameOnly;
-	CONST_PCHAR Path;
-	TFileSystemAttributes Attributes;
-	UINT64 Size;
-	DATETIME CreationTime;
-	DATETIME LastAccessTime;
-	DATETIME ModificationTime;
-	BOOL IsDirectory;
-	INT32 DirectoryState;
+	CONST_PCHAR NameOnly; // name without path
+	CONST_PCHAR Path; // full path to item
+	TFileSystemAttributes Attributes; // item attributes
+	UINT64 Size; // size in bytes
+	DATETIME CreationTime; // creation time
+	DATETIME LastAccessTime; // last access time
+	DATETIME ModificationTime; // last modification time
+	BOOL IsDirectory; // whether item is a directory
+	INT64 AcceptedSubItemsCount; // number of accepted sub-items if item is a directory
+	INT64 SkippedSubItemsCount; // number of skipped sub-items if item is a directory
 } ENUM_ITEM, *PENUM_ITEM;
 
 typedef INT32(*TEnumerateFilterFunction)(INT32 iState, PENUM_ITEM iItem, PVOID iUserData);
 
-#define ENUMERATE_STATE_OK 0
-#define ENUMERATE_STATE_ERROR 1
+#define ENUMERATE_STATE_ERROR 1 // error open directory or read data of item
+#define ENUMERATE_STATE_FOUND 2 // found item (name and type) before retrieve data
+#define ENUMERATE_STATE_RETRIEVE_DATA 3 // after retrieve data of item
+#define ENUMERATE_STATE_AFTER_ENUMERATE 4 // after enumerate all items in directory
 
-#define ENUMERATE_RETURN_CONTINUE 0
-#define ENUMERATE_RETURN_SKIP 1
-#define ENUMERATE_RETURN_ABORT 2
-
-#define ENUMERATE_DIRECTORY_STATE_NOT_ENUMERATED 0
-#define ENUMERATE_DIRECTORY_STATE_NOT_EMPTY 1
-#define ENUMERATE_DIRECTORY_STATE_EMPTY 2
+#define ENUMERATE_ACTION_CONTINUE 0 // continue enumeration and add item to count
+#define ENUMERATE_ACTION_SKIP 1 // skip item, do not add to count
+#define ENUMERATE_ACTION_ABORT 2 // abort enumeration
 
 //	...............................................................................................
 //	Class TFileSystem
@@ -167,7 +167,8 @@ public:
 	static INT32 AppendToPath(CONST_PCHAR iPath, CONST_PCHAR iValue, TString* oResult, BOOL iCheckPath = false); // Append value to path
 	static INT32 AppendToPath(TString* ioPath, CONST_PCHAR iValue, BOOL iCheckPath = false); // Append value to path
 	static INT32 CreateFullPath(TString* oResult, CONST_PCHAR iPath, CONST_PCHAR iFileNameOnly, CONST_PCHAR iExt); // Create a full file path from directory path, file name and file extension
-	static void ApppendExt(TString* ioFileName, CONST_PCHAR iExt); // Append file extension to file name
+	static void ApppendExt(TString* ioFileName, CONST_PCHAR iExt, BOOL iReplace = true, BOOL iOnlyIfNoetExists = false); // Append file extension to file name
+	static void GenerateTempFileName(TString* oTempFileName, CONST_PCHAR iDirectoryPath = NULL, CONST_PCHAR iExt = NULL); // Generate a temporary file name
 public:
 	static void GetCurrentDirectory(TString* oDirectoryPath); // Get current working directory
 public:
@@ -178,6 +179,7 @@ public:
 public:
 	static INT32 FileExists(CONST_PCHAR iFilePath, BOOL iCheckPath = true); // Check if a file exists
 	static INT32 DeleteFile(CONST_PCHAR iFilePath, BOOL iForceDelete = false, BOOL iCheckPath = false); // Delete a file
+	static INT32 RenameFile(CONST_PCHAR iOldFilePath, CONST_PCHAR iNewFilePath, BOOL iCheckPath = false); // Rename a file
 public:
 	static INT32 GetFileAttributes(CONST_PCHAR iPath, TFileSystemAttributes *oAttr, BOOL iCheckPath = false); // Get file attributes
 	static INT32 SetFileAttributes(CONST_PCHAR iPath, TFileSystemAttributes iAttr, BOOL iCheckPath = false); // Set file attributes

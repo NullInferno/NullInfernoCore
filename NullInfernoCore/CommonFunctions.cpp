@@ -499,14 +499,15 @@ INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCH
 // 			iDataSize - size of input data
 // 			iTransformTable - transformation table
 // 			iTerminator - terminator character or -1 for no terminator
+// 			iPreviousValue - previous hash value for incremental hashing
 //	Output:
 //			hash value
 //	................................................................................................
-UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable, INT32 iTerminator) {
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable, INT32 iTerminator, UINT64 iPreviousValue) {
 	if ((iTerminator == -1) && (iDataSize <= 0)) return 0; // No data?
 
 	CONST_PBYTE Data = (CONST_PBYTE)iData;
-	UINT64 Result = 5381ULL; // Initial hash value
+	UINT64 Result = iPreviousValue == 0 ? 5381ULL : iPreviousValue; // Initial hash value
 
 	if (iTransformTable == NULL) {
 		if (iTerminator != -1) { // Terminator specified?

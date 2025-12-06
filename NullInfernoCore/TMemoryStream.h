@@ -18,6 +18,7 @@ public:
 	BOOL Allocate(INT64 iCapacity); // Allocate memory for the stream
 	void GetContent(TBytes* oBuffer); // Get the entire content of the memory stream
 	void SetContent(TBytes* iBuffer); // Set the entire content of the memory stream
+	UINT64 GetHashCode(void); // Get hash code of the memory stream content
 public:
 	virtual BOOL IsOpen(void); // Check if the stream is open
 	virtual BOOL IsEOF(void); // Check if the stream is at the end

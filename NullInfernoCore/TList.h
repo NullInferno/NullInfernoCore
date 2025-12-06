@@ -56,6 +56,7 @@ public:
 	void DeleteValue(UINT32 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 	void DeleteValue(INT64 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
 	void DeleteValue(UINT64 iValue, INT64 iMaxRemovals = -1, TListNotifyFunction iNotifyFunction = NULL); // Delete items with specified value
+	void DeleteByIndexes(INT64 iCount, INT64* iIndexes, TListNotifyFunction iNotifyFunction = NULL); // Delete items by specified indexes
 public:
 	INT64 Find(PVOID iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1, TListBinarySearchCompareFunction iCompareFunction = NULL); // Find index of the specified item
 	INT64 Find(INT32 iValue, INT64 iStartIndex = 0, INT64 iMaxCount = -1, INT64 iOccurrenceIndex = 1); // Find index of the specified item

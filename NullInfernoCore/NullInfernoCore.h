@@ -275,4 +275,4 @@ UINT64 StrToUINT64(CONST_PCHAR iStr, UINT64 iDefaultValue = 0, CHAR iTerminating
 DOUBLE StrToDOUBLE(CONST_PCHAR iStr, DOUBLE iDefaultValue = 0.0, CHAR iDecimalPointChar = '.', CHAR iTerminatingChar = ' '); // Convert string to DOUBLE
 
 INT32 ConvertStringBetweenCodepages(CONST_PCHAR iSrcStr, INT32 iSrcCodepage, PCHAR oDstStr, INT32 iDstCodepage); // Convert string between codepages
-UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable = NULL, INT32 iTerminator = -1); // Generate 64-bit hash from data using djb2 algorithm
+UINT64 GenerateHash64(CONST_PVOID iData, INT64 iDataSize, CONST_PVOID iTransformTable = NULL, INT32 iTerminator = -1, UINT64 iPreviousValue = 0); // Generate 64-bit hash from data using djb2 algorithm

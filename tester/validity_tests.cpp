@@ -1,15 +1,17 @@
 #include "NullInfernoCore.h"
 
 #ifdef WINDOWS_SYSTEM
-CONST_PCHAR TEST_FOLDER = "Z:\\Development\\Temp\\NullCoreInferno";
+CONST_PCHAR TEST_FOLDER = "Z:\\Development\\Temp\\NullInfernoCore";
 CONST_PCHAR TEST_FOLDER_TEST_DIRS = "Z:\\Development\\Temp";
+CONST_PCHAR TEST_SIMPLE_FILE = "c:\\windows\\explorer.exe";
 
 TFileSystemAttributes WindowsAttaributes2FileSystemAttributes(UINT32 iValue);
 UINT32 FileSystemAttributes2WindowsAttaributes(TFileSystemAttributes iValue);
 
 #else
-CONST_PCHAR TEST_FOLDER = "/home/nullinferno/projects/Temp/NullCoreInferno";
+CONST_PCHAR TEST_FOLDER = "/home/nullinferno/projects/Temp/NullInfernoCore";
 CONST_PCHAR TEST_FOLDER_TEST_DIRS = "/home/nullinferno/projects/Temp";
+CONST_PCHAR TEST_SIMPLE_FILE = "/etc/timezone";
 
 TFileSystemAttributes LinuxAttaributes2FileSystemAttributes(UINT32 iAttr, UINT32 iChmod, UINT32 iExt2Attr);
 void FileSystemAttributes2LinuxAttaributes(TFileSystemAttributes iValue, UINT32* oAttr, UINT32* oChmod, UINT32* oExt2Attr);
@@ -770,6 +772,21 @@ BOOL RunValidityTests_TList(void) {
 		});
 	if (R != -1) return TEnvironment::ShowTestErrorMessage(-2040, "TList::BinaryFindLast");
 
+	INT64 Idxs[4] = { 3, 0, 1, 4 };
+	L1.Clear(); L1.Add((UINT64)10); L1.Add((UINT64)20); L1.Add((UINT64)30); L1.Add((UINT64)40); L1.Add((UINT64)50);
+	L1.Add((UINT64)60); L1.Add((UINT64)70); L1.Add((UINT64)80); L1.Add((UINT64)90); L1.Add((UINT64)100);
+
+	if (L1.Count() != 10) return TEnvironment::ShowTestErrorMessage(-2041, "TList::Count");
+	L1.DeleteByIndexes(4, Idxs);
+	if (L1.Count() != 6) return TEnvironment::ShowTestErrorMessage(-2042, "TList::Count");
+	if (L1.ItemAsUINT64(0) != 30) return TEnvironment::ShowTestErrorMessage(-2043, "TList::DeleteByIndexes");
+	if (L1.ItemAsUINT64(1) != 60) return TEnvironment::ShowTestErrorMessage(-2045, "TList::DeleteByIndexes");
+	if (L1.ItemAsUINT64(2) != 70) return TEnvironment::ShowTestErrorMessage(-2046, "TList::DeleteByIndexes");
+	if (L1.ItemAsUINT64(3) != 80) return TEnvironment::ShowTestErrorMessage(-2047, "TList::DeleteByIndexes");
+	if (L1.ItemAsUINT64(4) != 90) return TEnvironment::ShowTestErrorMessage(-2048, "TList::DeleteByIndexes");
+	if (L1.ItemAsUINT64(5) != 100) return TEnvironment::ShowTestErrorMessage(-2049, "TList::DeleteByIndexes");
+
+
 	//PUINT64 Data = (PUINT64)MEMORY_ALLOC(128 * sizeof(UINT64));
 	//PUINT64 Data1 = (PUINT64)MEMORY_ALLOC(128 * sizeof(UINT64));
 	//if (Data == NULL) return false;
@@ -1279,7 +1296,7 @@ BOOL RunValidityTests_TCommandLineParser(INT32 iArgc, PCHAR* iArgs) {
 //	................................................................................................
 BOOL RunValidityTests_TFileSystem(void) {
 
-	TString S1, Path, Name, NameOnly, Ext;
+	TString S1, S2, Path, Name, NameOnly, Ext;
 	INT32 R;
 
 #ifdef WINDOWS_SYSTEM
@@ -1442,25 +1459,79 @@ BOOL RunValidityTests_TFileSystem(void) {
 	R = TFileSystem::Enumerate("c:\\System Volume Information", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_READ) return TEnvironment::ShowTestErrorMessage(-8121, "TFileSystem::CreateFullPath");
 	S1.SetValue(TEST_FOLDER_TEST_DIRS); TFileSystem::AppendToPath(&S1, "test");
 	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
-		//if (iState == ENUMERATE_STATE_ERROR) {
-		//	printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
-		//}
-		//CHAR BUF[32], BUF1[32], BUF2[32];
-		//TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//if (iItem->IsDirectory) {
-		//	if (iItem->DirectoryState == ENUMERATE_DIRECTORY_STATE_EMPTY) {
-		//		printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s] -> Skipped", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
-		//	}
-		//	return ENUMERATE_RETURN_CONTINUE;
-		//}
-		////else return ENUMERATE_RETURN_SKIP;
-		//else printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s]", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
-		////if (iItem->IsDirectory) return ENUMERATE_RETURN_SKIP;
-		return ENUMERATE_RETURN_CONTINUE;
+		if (iState == ENUMERATE_STATE_ERROR) {
+			//printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_FOUND) {
+			//printf("\nFound %s: [%s][%s]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_RETRIEVE_DATA) {
+			CHAR BUF[32], BUF1[32], BUF2[32];
+			TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+
+			//printf("\nRetrieved %s: [%s][%s] -> [S: %llu], [DC:%s], [DM:%s], [DA:%s] ", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_AFTER_ENUMERATE) {
+			//printf("\nEnumerated %s: [%s][%s] -> [AC : %llu], [SC: %llu]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->AcceptedSubItemsCount, iItem->SkippedSubItemsCount);
+			return iItem->AcceptedSubItemsCount == 0 ? ENUMERATE_ACTION_SKIP : ENUMERATE_ACTION_CONTINUE;
+		}
+		return ENUMERATE_ACTION_CONTINUE;
 		});
 	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8120, "TFileSystem::Enumerate");
+
+	S1.SetValue("C:\\Folder1\\test"); TFileSystem::ApppendExt(&S1, "txt", false, false); if (!S1.IsEqual("C:\\Folder1\\test.txt")) return TEnvironment::ShowTestErrorMessage(-8121, "TFileSystem::ApppendExt");
+	S1.SetValue("C:\\Folder1\\test.txt"); TFileSystem::ApppendExt(&S1, "txt", false, false); if (!S1.IsEqual("C:\\Folder1\\test.txt.txt")) return TEnvironment::ShowTestErrorMessage(-8122, "TFileSystem::ApppendExt");
+	S1.SetValue("C:\\Folder1\\test.txt"); TFileSystem::ApppendExt(&S1, "txt", false, true); if (!S1.IsEqual("C:\\Folder1\\test.txt")) return TEnvironment::ShowTestErrorMessage(-8123, "TFileSystem::ApppendExt");
+	S1.SetValue("C:\\Folder1\\test"); TFileSystem::ApppendExt(&S1, "txt", false, true); if (!S1.IsEqual("C:\\Folder1\\test.txt")) return TEnvironment::ShowTestErrorMessage(-8124, "TFileSystem::ApppendExt");
+	S1.SetValue("C:\\Folder1\\test.bak"); TFileSystem::ApppendExt(&S1, "txt", true, false); if (!S1.IsEqual("C:\\Folder1\\test.txt")) return TEnvironment::ShowTestErrorMessage(-8125, "TFileSystem::ApppendExt");
+	S1.SetValue("C:\\Folder1\\test.bak"); TFileSystem::ApppendExt(&S1, "txt", true, true); if (!S1.IsEqual("C:\\Folder1\\test.txt")) return TEnvironment::ShowTestErrorMessage(-8126, "TFileSystem::ApppendExt");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "file1.dat"); F = fopen(S1.PChar(), "wb+"); if (F == NULL) return TEnvironment::ShowTestErrorMessage(-8127, "TFileSystem");
+	fclose(F);
+	S2.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S2, "file2.dat");
+
+	R = TFileSystem::RenameFile(S1.PChar(), S2.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8128, "TFileSystem::RenameFile");
+	if (TFileSystem::FileExists(S1.PChar()) != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8129, "TFileSystem::FileExists");
+	if (TFileSystem::FileExists(S2.PChar()) != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8130, "TFileSystem::FileExists");
+	if (TFileSystem::DeleteFile(S2.PChar()) != 0) return TEnvironment::ShowTestErrorMessage(-8131, "TFileSystem::DeleteFile");
+
+	S1.SetValue(TEST_SIMPLE_FILE);
+	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
+		if (iState == ENUMERATE_STATE_ERROR) {
+			//printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_FOUND) {
+			//printf("\nFound %s: [%s][%s]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_RETRIEVE_DATA) {
+			CHAR BUF[32], BUF1[32], BUF2[32];
+			TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+
+			//printf("\nRetrieved %s: [%s][%s] -> [S: %llu], [DC:%s], [DM:%s], [DA:%s] ", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_AFTER_ENUMERATE) {
+			//printf("\nEnumerated %s: [%s][%s] -> [AC : %llu], [SC: %llu]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->AcceptedSubItemsCount, iItem->SkippedSubItemsCount);
+			return iItem->AcceptedSubItemsCount == 0 ? ENUMERATE_ACTION_SKIP : ENUMERATE_ACTION_CONTINUE;
+		}
+		return ENUMERATE_ACTION_CONTINUE;
+		});
+	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8132, "TFileSystem::Enumerate");
 
 #else
 	if (TFileSystem::IsValidPath("") != FILE_SYSTEM_ERROR_INVALID_ROOT) return TEnvironment::ShowTestErrorMessage(-8001, "TFileSystem::IsValidPath");
@@ -1604,25 +1675,79 @@ BOOL RunValidityTests_TFileSystem(void) {
 	R = TFileSystem::Enumerate("/root", NULL, NULL); if (R != FILE_SYSTEM_ERROR_DIRECTORY_READ) return TEnvironment::ShowTestErrorMessage(-8099, "TFileSystem::CreateFullPath (%d)", R);
 	S1.SetValue(TEST_FOLDER_TEST_DIRS); TFileSystem::AppendToPath(&S1, "test");
 	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
-		//if (iState == ENUMERATE_STATE_ERROR) {
-		//	printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
-		//}
-		//CHAR BUF[32], BUF1[32], BUF2[32];
-		//TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
-		//if (iItem->IsDirectory) {
-		//	if (iItem->DirectoryState == ENUMERATE_DIRECTORY_STATE_EMPTY) {
-		//		printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s] -> Skipped", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
-		//	}
-		//	return ENUMERATE_RETURN_CONTINUE;
-		//}
-		////else return ENUMERATE_RETURN_SKIP;
-		//else printf("\n[Path: %s][Name: %s][Size: %llu][DC: %s][DM: %s][DA: %s]", iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
-		////if (iItem->IsDirectory) return ENUMERATE_RETURN_SKIP;
-		return ENUMERATE_RETURN_CONTINUE;
+		if (iState == ENUMERATE_STATE_ERROR) {
+			printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_FOUND) {
+			//printf("\nFound %s: [%s][%s]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_RETRIEVE_DATA) {
+			CHAR BUF[32], BUF1[32], BUF2[32];
+			TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+
+			//printf("\nRetrieved %s: [%s][%s] -> [S: %llu], [DC:%s], [DM:%s], [DA:%s] ", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_AFTER_ENUMERATE) {
+			//printf("\nEnumerated %s: [%s][%s] -> [AC : %llu], [SC: %llu]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->AcceptedSubItemsCount, iItem->SkippedSubItemsCount);
+			return iItem->AcceptedSubItemsCount == 0 ? ENUMERATE_ACTION_SKIP : ENUMERATE_ACTION_CONTINUE;
+		}
+		return ENUMERATE_ACTION_CONTINUE;
 		});
 	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8100, "TFileSystem::Enumerate");
+
+	S1.SetValue("/home/user/test"); TFileSystem::ApppendExt(&S1, "txt", false, false); if (!S1.IsEqual("/home/user/test.txt")) return TEnvironment::ShowTestErrorMessage(-8101, "TFileSystem::ApppendExt");
+	S1.SetValue("/home/user/test.txt"); TFileSystem::ApppendExt(&S1, "txt", false, false); if (!S1.IsEqual("/home/user/test.txt.txt")) return TEnvironment::ShowTestErrorMessage(-8102, "TFileSystem::ApppendExt");
+	S1.SetValue("/home/user/test.txt"); TFileSystem::ApppendExt(&S1, "txt", false, true); if (!S1.IsEqual("/home/user/test.txt")) return TEnvironment::ShowTestErrorMessage(-8103, "TFileSystem::ApppendExt");
+	S1.SetValue("/home/user/test"); TFileSystem::ApppendExt(&S1, "txt", false, true); if (!S1.IsEqual("/home/user/test.txt")) return TEnvironment::ShowTestErrorMessage(-8104, "TFileSystem::ApppendExt");
+	S1.SetValue("/home/user/test.bak"); TFileSystem::ApppendExt(&S1, "txt", true, false); if (!S1.IsEqual("/home/user/test.txt")) return TEnvironment::ShowTestErrorMessage(-8105, "TFileSystem::ApppendExt");
+	S1.SetValue("/home/user/test.bak"); TFileSystem::ApppendExt(&S1, "txt", true, true); if (!S1.IsEqual("/home/user/test.txt")) return TEnvironment::ShowTestErrorMessage(-8106, "TFileSystem::ApppendExt");
+
+	S1.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S1, "file1.dat"); F = fopen(S1.PChar(), "wb+"); if (F == NULL) return TEnvironment::ShowTestErrorMessage(-8107, "TFileSystem");
+	fclose(F);
+	S2.SetValue(TEST_FOLDER); TFileSystem::AppendToPath(&S2, "file2.dat");
+
+	R = TFileSystem::RenameFile(S1.PChar(), S2.PChar(), true); if (R != 0) return TEnvironment::ShowTestErrorMessage(-8108, "TFileSystem::RenameFile");
+	if (TFileSystem::FileExists(S1.PChar()) != FILE_SYSTEM_FALSE) return TEnvironment::ShowTestErrorMessage(-8109, "TFileSystem::FileExists");
+	if (TFileSystem::FileExists(S2.PChar()) != FILE_SYSTEM_TRUE) return TEnvironment::ShowTestErrorMessage(-8110, "TFileSystem::FileExists");
+	if (TFileSystem::DeleteFile(S2.PChar()) != 0) return TEnvironment::ShowTestErrorMessage(-8111, "TFileSystem::DeleteFile");
+
+	S1.SetValue(TEST_SIMPLE_FILE);
+	R = TFileSystem::Enumerate(S1.PChar(), NULL, [](INT32 iState, PENUM_ITEM iItem, PVOID iUserData) -> INT32 {
+		if (iState == ENUMERATE_STATE_ERROR) {
+			//printf("\nError during enumeration: [%s][%s]", iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_FOUND) {
+			//printf("\nFound %s: [%s][%s]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_RETRIEVE_DATA) {
+			CHAR BUF[32], BUF1[32], BUF2[32];
+			TDateTime::FormatDateTime(iItem->CreationTime, BUF, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->ModificationTime, BUF1, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+			TDateTime::FormatDateTime(iItem->LastAccessTime, BUF2, 31, "%dd.%MM.%yy: %hh:%mm:%ss");
+
+			//printf("\nRetrieved %s: [%s][%s] -> [S: %llu], [DC:%s], [DM:%s], [DA:%s] ", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->Size, BUF, BUF1, BUF2);
+			return ENUMERATE_ACTION_CONTINUE;
+		}
+
+		if (iState == ENUMERATE_STATE_AFTER_ENUMERATE) {
+			//printf("\nEnumerated %s: [%s][%s] -> [AC : %llu], [SC: %llu]", (iItem->IsDirectory ? "DIR" : "FILE"), iItem->Path, iItem->NameOnly, iItem->AcceptedSubItemsCount, iItem->SkippedSubItemsCount);
+			return iItem->AcceptedSubItemsCount == 0 ? ENUMERATE_ACTION_SKIP : ENUMERATE_ACTION_CONTINUE;
+		}
+		return ENUMERATE_ACTION_CONTINUE;
+		});
+	if (R != 0) return TEnvironment::ShowTestErrorMessage(-8132, "TFileSystem::Enumerate");
 
 #endif
 

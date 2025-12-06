@@ -564,6 +564,53 @@ void TList::DeleteValue(UINT64 iValue, INT64 iMaxRemovals, TListNotifyFunction i
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Delete items by specified indexes
+//	Input:
+// 			iCount - number of indexes
+// 			iIndexes - array of indexes
+// 			iNotifyFunction - notification function called for the deleted item
+//	Output:
+//			none
+//	...............................................................................................
+void TList::DeleteByIndexes(INT64 iCount, INT64* iIndexes, TListNotifyFunction iNotifyFunction) {
+	if (iCount == 0) return; // No indexes to delete
+	if (iIndexes == NULL) return; // Indexes array is NULL
+
+	INT64* SortedIndexes = (INT64*)MEMORY_ALLOC(iCount * sizeof(INT64)); // Allocate memory for sorted indexes
+	if (SortedIndexes == NULL) return; // Memory allocation failed
+
+	FNC_MEMCPY(SortedIndexes, iIndexes, iCount * sizeof(INT64)); // Copy indexes
+	qsort(SortedIndexes, iCount, sizeof(INT64), 
+		[](CONST_PVOID a, CONST_PVOID b)->INT32 {
+			INT64 V1 = *(INT64*)a;
+			INT64 V2 = *(INT64*)b;
+			if (V1 < V2) return -1;
+			if (V1 > V2) return 1;
+			return 0;
+		}); // Sort indexes
+
+	INT64 CurrIndex = 0;
+	INT64 j = 0;
+	for (INT64 i = 0; i < FCount; i++) {
+		if (i == SortedIndexes[CurrIndex]) { // Is current index should be deleted?
+			if (iNotifyFunction != NULL) iNotifyFunction(FValues[i], i); // Call notification function
+			CurrIndex++; // Move to next index to delete
+			if (CurrIndex >= iCount) { // Are all indexes processed?
+				if (i < FCount - 1) { // Are there remaining items?
+					FNC_MEMMOVE(&FValues[j], &FValues[i + 1], (FCount - i - 1) * sizeof(PVOID)); // Shift remaining items to the left
+				}
+				FCount = j + FCount - i - 1; // Update count
+				break;
+			}
+		}
+		else {
+			FValues[j++] = FValues[i]; // Keep the item
+		}
+	}
+	MEMORY_FREE(SortedIndexes); // Free sorted indexes memory
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Find index of the specified item
 //	Input:
 // 			iValue - value to find

@@ -113,6 +113,29 @@ void TMemoryStream::SetContent(TBytes* iBuffer) {
 }
 //	...............................................................................................
 //	...............................................................................................
+//	Get hash code of the memory stream content
+//	Input:
+// 			none
+//	Output:
+//			hash code
+//	...............................................................................................
+UINT64 TMemoryStream::GetHashCode(void) {
+	if (FSize == 0) return 0; // Empty stream?
+	INT64 MemBank = 0; // Memory bank index
+	INT64 RemainingSize = FSize; // Remaining size to copy
+
+	UINT64 ResultHash = 0; // Resulting hash code
+	while (RemainingSize > 0) {
+		INT64 R = MIN(RemainingSize, FPageSize); // Calculate bytes to copy from this bank
+		PBYTE BankPtr = (PBYTE)FMemoryPages->Item(MemBank); // Get memory bank pointer
+		ResultHash = GenerateHash64(BankPtr, R, NULL, -1, ResultHash); // Update hash code with bank data
+		RemainingSize -= R; // Decrease remaining size to copy
+		MemBank++; // Move to the next memory bank
+	}
+	return ResultHash; // Return the final hash code
+}
+//	...............................................................................................
+//	...............................................................................................
 //	Check if the stream is open
 //	Input:
 // 			none
